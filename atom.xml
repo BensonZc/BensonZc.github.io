@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title><![CDATA[BensonZc'Blog]]></title>
+  <subtitle><![CDATA[拥有满满的情怀和数码周边的码农]]></subtitle>
+  <link href="/atom.xml" rel="self"/>
+  <link href="http://bensonzc.github.io/"/>
+  <updated>2016-02-05T07:23:38.000Z</updated>
+  <id>http://bensonzc.github.io/</id>
+  
+  <author>
+    <name><![CDATA[BensonZc]]></name>
+    
+  </author>
+  
+  <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title><![CDATA[Sonar常见问题整理]]></title>
+    <link href="http://bensonzc.github.io/2016/02/05/sonar-problem-list/"/>
+    <id>http://bensonzc.github.io/2016/02/05/sonar-problem-list/</id>
+    <published>2016-02-05T07:15:21.000Z</published>
+    <updated>2016-02-05T07:23:38.000Z</updated>
+    <content type="html"><![CDATA[<p><a href="http://www.sonarqube.org/" target="_blank" rel="external">Sonar</a>是一个开源平台，用于管理Java源代码的质量。本章知识介绍Sonar检验代码常出现的几个问题：</p>
+<ul>
+<li><p>安全-直接保存数组：<code>The user-supplied array &#39;xxxx&#39; is stored directly</code><br>例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> String[] getXXXXArray()&#123;</span><br><span class="line">	<span class="keyword">return</span> xxxxArray;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setXXXXArray</span><span class="params">(String[] xxxxArray)</span></span>&#123;</span><br><span class="line">	<span class="keyword">this</span>.xxxxArray = xxxxArray;</span><br><span class="line">&#125;</span><br><span class="line">===&gt;</span><br><span class="line"><span class="keyword">public</span> String[] getXXXXArray()&#123;</span><br><span class="line">	<span class="keyword">if</span>(<span class="keyword">null</span> != xxxxArray)&#123;</span><br><span class="line">		<span class="keyword">return</span> Arrays.copyOf(xxxxArray, xxxxArray.length);</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setXXXXArray</span><span class="params">(String[] xxxxArray)</span></span>&#123;</span><br><span class="line">	<span class="keyword">if</span>(<span class="keyword">null</span> != xxxxArray)&#123;</span><br><span class="line">		<span class="keyword">this</span>.xxxxArray = Arrays.copyOf(xxxxArray, xxxxArray.length);</span><br><span class="line">	&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.xxxxArray = <span class="keyword">null</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>覆盖了equals也应该覆盖hashCode：<code>Definition of &#39;equals()&#39; without corresponding definition of &#39;hashCode()</code><br>如果覆盖了equals()方法的话，则必须覆盖hashCode()方法。Object类的equals()方法按照内存地址比较对象是否相等，因此如果object1.equals(object2)为true，表明object1变量和object2变量实际上引用同一个对象，那么object1和object2的哈希吗肯定也肯定也相同，也就是说object1.hashCode()==object2.hashCode()。<br>如果用户定义的类覆盖了Object类的equals()方法，但是没有覆盖Object类的hashCode()方法，就会导致当object1.equals(object2)为true时，object1和object2的哈希吗不一定一样。所以如果覆盖了equals()方法，也应该覆盖hashCode()方法，并且保证2个相等的object对象的哈希码也一样</p>
+</li>
+<li><p>返回之前不用的本地变量：<code>Consider simply returning the value vs storing it in local variable &#39;xxxx&#39;</code><br>例子：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">	<span class="function"><span class="keyword">public</span> Object <span class="title">getObject</span><span class="params">(String param)</span></span>&#123;</span><br><span class="line">	TestObject testObject = function(param);</span><br><span class="line">	<span class="keyword">return</span> testObject;</span><br><span class="line">&#125;</span><br><span class="line">===&gt;</span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getObject</span><span class="params">(String param)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> function(param);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>隐藏属性：<code>&#39;****&#39; hides a field.</code><br>方法中声明的变量和成员属性名发生了重复</p>
+</li>
+<li><p>简化布尔表达式：<code>Expression can be simplified.</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(xxxx == <span class="keyword">false</span>)</span><br><span class="line">===&gt;</span><br><span class="line"><span class="keyword">if</span>(!xxxx)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>进行比较时，比较常量应该放在左边</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>(xxxx.equals(<span class="string">"0"</span>))&#123;</span><br><span class="line">	......</span><br><span class="line">&#125;</span><br><span class="line">===&gt;</span><br><span class="line"><span class="keyword">if</span>(<span class="string">"0"</span>.equals(xxxx))&#123;</span><br><span class="line">	......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>待续……</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p><a href="http://www.sonarqube.org/" target="_blank" rel="external">Sonar</a>是一个开源平台，用于管理Java源代码的质量。本章知识介绍Sonar检验代码常出现的几个问题：</p>
+<ul>
+<li>]]>
+    </summary>
+    
+      <category term="code-style" scheme="http://bensonzc.github.io/tags/code-style/"/>
+    
+      <category term="java" scheme="http://bensonzc.github.io/tags/java/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[如何部署https项目（tomcat）]]></title>
+    <link href="http://bensonzc.github.io/2016/02/05/how-to-deploy-https-project/"/>
+    <id>http://bensonzc.github.io/2016/02/05/how-to-deploy-https-project/</id>
+    <published>2016-02-05T06:30:50.000Z</published>
+    <updated>2016-02-05T07:14:51.000Z</updated>
+    <content type="html"><![CDATA[<p>前段时间接了个外包项目，终端IOS要求请求走https。之前https都是某同事在倒腾，没有学习理解过，查了一些资料自己做点总结。</p>
+<h2 id="1-__u4F55_u4E3Ahttps"><a href="#1-__u4F55_u4E3Ahttps" class="headerlink" title="1. 何为https"></a>1. 何为https</h2><p>高大上的理论解释网上一搜一打，就不做解释了。这里做最简单最通俗的解释：http的安全版本。通过在http下加入SSL层。一般意义上的https就是在服务器上有一个证书，服务端与客户端之间所有通讯都是加密的。客户端向服务端握个手，初始化下SSL层。这时候客户端和服务端就可以愉快的沟通了。这里主要介绍下复杂的SSL握手。</p>
+<h3 id="SSL_u63E1_u624B_uFF08_u5355_u5411_u8BA4_u8BC1_uFF09"><a href="#SSL_u63E1_u624B_uFF08_u5355_u5411_u8BA4_u8BC1_uFF09" class="headerlink" title="SSL握手（单向认证）"></a>SSL握手（单向认证）</h3><ol>
+<li>客户端（一般就是浏览器了）向服务端发送自己支持的加密规则。</li>
+<li>服务端选择一组加密规则和HASH算法，以及服务端证书发送给浏览器。证书中包括网站地址，加密公钥，以及证书的颁发机构等信息。（SSL支持双向认证，服务端将证书发送给客户端，然后再将客户端的证书回送给服务端。但是实际应用中很多用户都没有自己的客户端证书，因此服务器也很少会要求客户端证书）</li>
+<li>浏览器获取到服务端证书后要做一些操作：<ul>
+<li>验证证书的合法性（颁发证书的机构是否合法等验证），如果证书合法，则浏览器会显示个小锁头，否则会给出证书不受信的提示。</li>
+<li>如果证书受信任，或者用户接受了不受信任的证书，浏览器会生成一串随机数的密码，并用证书中提供的公钥加密。</li>
+<li>使用约定好的HASH算法计算握手消息，并使用刚生成的随机数对消息进行加密，最后将之前生成的所有信息发送给服务端。</li>
+</ul>
+</li>
+<li>服务端收到浏览器发来的数据后做如下操作：<ul>
+<li>使用自己的私钥将信息解密取出密码，使用密码解密浏览器发来的握手信息，并验证HASH是否与浏览器发来的是否一致。</li>
+<li>使用密码加密一段握手消息，发送给浏览器。</li>
+</ul>
+</li>
+<li>浏览器解密并计算握手消息的HASH，如果与服务端发来的HASH一致，此时握手过程结束，之后所有的通信数据都将由之前浏览器生成的随机密码并利用对称加密算法进行加密。</li>
+</ol>
+<h3 id="u603B_u7ED3_u4E0B_u5C31_u662F_uFF1A"><a href="#u603B_u7ED3_u4E0B_u5C31_u662F_uFF1A" class="headerlink" title="总结下就是："></a>总结下就是：</h3><p>浏览器https请求连接，服务端将证书（里面有公钥）返回给浏览器，浏览器产生随机数（密钥）同时用公钥对随机数（密钥）加密。将加密后的随机数（密钥）发送给服务端。然后浏览器和服务端数据通信就用这个随机数（密钥）对称加密。</p>
+<h2 id="2-__u5728tomcat_u670D_u52A1_u5668_u4E0A_u90E8_u7F72https"><a href="#2-__u5728tomcat_u670D_u52A1_u5668_u4E0A_u90E8_u7F72https" class="headerlink" title="2. 在tomcat服务器上部署https"></a>2. 在tomcat服务器上部署https</h2><h3 id="2-1__u751F_u6210_u5B89_u5168_u8BC1_u4E66"><a href="#2-1__u751F_u6210_u5B89_u5168_u8BC1_u4E66" class="headerlink" title="2.1 生成安全证书"></a>2.1 生成安全证书</h3><p>jdk为我们提供了个keytool.exe<br>生成证书的命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">keytool -genkey -alias &#20135;&#29983;&#21035;&#21517; -keyalg &#25351;&#23450;&#23494;&#38053;&#31639;&#27861; -keystore &#23494;&#38053;&#36335;&#24452; -storepass &#23494;&#38053;&#30340;&#23494;&#30721; -keypass &#21035;&#21517;&#26465;&#30446;&#23494;&#30721;</span><br></pre></td></tr></table></figure></p>
+<p>然后会出现让你输入以下信息：<br><img src="/2016/02/05/how-to-deploy-https-project/htdhp-1.jpg" alt=""></p>
+<h3 id="2-2__u914D_u7F6Etomcat"><a href="#2-2__u914D_u7F6Etomcat" class="headerlink" title="2.2 配置tomcat"></a>2.2 配置tomcat</h3><p>tomcat目录下的conf/server.xml找到<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--</span><br><span class="line">&lt;Connector port="8443" protocol="org.apache.coyote.http11.Http11Protocol"</span><br><span class="line">           maxThreads="150" SSLEnabled="true" scheme="https" secure="true"</span><br><span class="line">           clientAuth="false" sslProtocol="TLS" /&gt;</span><br><span class="line">--&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>去掉注释，修改为<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="title">Connector</span> <span class="attribute">port</span>=<span class="value">"8443"</span> <span class="attribute">protocol</span>=<span class="value">"org.apache.coyote.http11.Http11Protocol"</span> </span><br><span class="line">		   <span class="attribute">maxThreads</span>=<span class="value">"150"</span> <span class="attribute">SSLEnabled</span>=<span class="value">"true"</span> <span class="attribute">scheme</span>=<span class="value">"https"</span> <span class="attribute">secure</span>=<span class="value">"true"</span></span><br><span class="line">		   <span class="attribute">clientAuth</span>=<span class="value">"false"</span> <span class="attribute">sslProtocol</span>=<span class="value">"TLS"</span> </span><br><span class="line">		   <span class="attribute">keystoreFile</span>=<span class="value">"keystore文件路径"</span> </span><br><span class="line">		   <span class="attribute">keystorePass</span>=<span class="value">"密码"</span> /&gt;</span></span><br></pre></td></tr></table></figure></p>
+<p>如果让http自动跳转到https请求可以顺带修改配置<br><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redirectPort="8443"</span><br></pre></td></tr></table></figure></p>
+<p>将http请求重定向到https请求上。</p>
+<p>接下来就可以直接通过https访问了，实际项目运用过程中。可能更多的是通过授信的第三方购买证书。（搜了一下，感觉挺贵的。小几百一年）各位有兴趣可以购买一发，部署一发！</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>前段时间接了个外包项目，终端IOS要求请求走https。之前https都是某同事在倒腾，没有学习理解过，查了一些资料自己做点总结。</p>
+<h2 id="1-__u4F55_u4E3Ahttps"><a href="#1-__u4F55_u4E3Ahttps" class]]>
+    </summary>
+    
+      <category term="tomcat" scheme="http://bensonzc.github.io/tags/tomcat/"/>
+    
+      <category term="部署" scheme="http://bensonzc.github.io/tags/%E9%83%A8%E7%BD%B2/"/>
+    
+  </entry>
+  
+</feed>
