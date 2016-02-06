@@ -18,7 +18,7 @@
 
 安全-直接保存数组：The user-supplied array &amp;#39;xxxx&amp;#39; is stored directly例子：
 1234567891011121314151617181920public String[] getXXXXArray()&amp;#123;	return">
-<meta property="og:updated_time" content="2016-02-05T07:23:38.000Z">
+<meta property="og:updated_time" content="2016-02-06T01:26:54.516Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Sonar常见问题整理">
 <meta name="twitter:description" content="Sonar是一个开源平台，用于管理Java源代码的质量。本章知识介绍Sonar检验代码常出现的几个问题：
@@ -119,7 +119,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/java/" style="font-size: 10px;">java</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a>
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/java/" style="font-size: 10px;">java</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
 					</div>
 				</section>
 				
@@ -230,7 +230,7 @@
 <li><p>覆盖了equals也应该覆盖hashCode：<code>Definition of &#39;equals()&#39; without corresponding definition of &#39;hashCode()</code><br>如果覆盖了equals()方法的话，则必须覆盖hashCode()方法。Object类的equals()方法按照内存地址比较对象是否相等，因此如果object1.equals(object2)为true，表明object1变量和object2变量实际上引用同一个对象，那么object1和object2的哈希吗肯定也肯定也相同，也就是说object1.hashCode()==object2.hashCode()。<br>如果用户定义的类覆盖了Object类的equals()方法，但是没有覆盖Object类的hashCode()方法，就会导致当object1.equals(object2)为true时，object1和object2的哈希吗不一定一样。所以如果覆盖了equals()方法，也应该覆盖hashCode()方法，并且保证2个相等的object对象的哈希码也一样</p>
 </li>
 <li><p>返回之前不用的本地变量：<code>Consider simply returning the value vs storing it in local variable &#39;xxxx&#39;</code><br>例子：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">	<span class="function"><span class="keyword">public</span> Object <span class="title">getObject</span><span class="params">(String param)</span></span>&#123;</span><br><span class="line">	TestObject testObject = function(param);</span><br><span class="line">	<span class="keyword">return</span> testObject;</span><br><span class="line">&#125;</span><br><span class="line">===&gt;</span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getObject</span><span class="params">(String param)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> function(param);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getObject</span><span class="params">(String param)</span></span>&#123;</span><br><span class="line">	TestObject testObject = function(param);</span><br><span class="line">	<span class="keyword">return</span> testObject;</span><br><span class="line">&#125;</span><br><span class="line">===&gt;</span><br><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">getObject</span><span class="params">(String param)</span></span>&#123;</span><br><span class="line">	<span class="keyword">return</span> function(param);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 </li>
 <li><p>隐藏属性：<code>&#39;****&#39; hides a field.</code><br>方法中声明的变量和成员属性名发生了重复</p>
 </li>
@@ -250,6 +250,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2016/02/06/2015-summarize/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          2015-summarize
+        
+      </div>
+    </a>
   
   
     <a href="/2016/02/05/how-to-deploy-https-project/" id="article-nav-older" class="article-nav-link-wrap">
