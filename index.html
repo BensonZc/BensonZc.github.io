@@ -109,7 +109,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/java/" style="font-size: 10px;">java</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
 					</div>
 				</section>
 				
@@ -177,6 +177,98 @@
 
       <div class="body-wrap">
   
+    <article id="post-thread-pool-summary" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/02/14/thread-pool-summary/" class="article-date">
+  	<time datetime="2016-02-14T06:08:32.000Z" itemprop="datePublished">2016-02-14</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/02/14/thread-pool-summary/">java线程池整理</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>年假前，闲来无事。对线程池的理解不是很系统，就索性稍微整理了下。</p>
+<h2 id="1-__u7EBF_u7A0B_u6C60_u4F5C_u7528"><a href="#1-__u7EBF_u7A0B_u6C60_u4F5C_u7528" class="headerlink" title="1. 线程池作用"></a>1. 线程池作用</h2><p>线程池作用就是限制系统中执行线程的数量。根据系统的环境情况，可以自动或手动设置线程数量，合理利用资源，达到最佳效果。线程池减少了创建和销毁线程的次数，每个工作线程可以被重复利用，执行多个任务。同时根据系统的承受能力，调整线程池中工作线程的数目。</p>
+<h2 id="2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790"><a href="#2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790" class="headerlink" title="2. 线程池类解析"></a>2. 线程池类解析</h2><ul>
+<li><code>ExecutorService</code> 真正的线程池接口</li>
+<li><code>ScheduledExecutorService</code> 和Timer/TimerTask类似，解决那些需要任务重复执行的问题</li>
+<li><code>ThreadPoolExecutor</code> ExecutorService的默认实现。</li>
+<li><code>ScheduledThreadPoolExecutor</code> 继承ThreadPoolExecutor和ScheduledExecutorService接口实现，周期性任务调度的类实现。</li>
+</ul>
+<p>配置一个线程池比较复杂，尤其是原理不清楚的情况下。这样配出来的线程池效果可能不是最优的，因此Executors类里面提供了一些惊呆工厂，生成一些常用的线程池。</p>
+<h2 id="3-__u5E38_u7528_u7684_u51E0_u4E2A_u7EBF_u7A0B_u6C60"><a href="#3-__u5E38_u7528_u7684_u51E0_u4E2A_u7EBF_u7A0B_u6C60" class="headerlink" title="3. 常用的几个线程池"></a>3. 常用的几个线程池</h2><ul>
+<li><code>newSingleThreadExecutor</code>:创建一个单线程的线程池。这个线程池只有一个线程在工作，也就是相当于单线程串行执行所有任务。如果线程出现异常结束，就会创建个新线程来代替。此线程池保证了所有任务按任务提交顺序执行。</li>
+<li><code>newFixedThreadPool</code>:创建固定大小的线程池。每次提交一个任务就创建一个线程，直到线程数达到线程池最大线程数。线程池的大小一旦叨叨最大值就会保持不变。</li>
+<li><code>newCachedThreadPool</code>:创建一个可缓存的线程池。如果线程池的大小超过了处理任务所需要的线程，会回收部分空闲线程，当任务数增加时，线程池又会智能的添加新线程来处理任务。线程池大小依赖于JVM能够创建的最大线程大小。</li>
+<li><code>newScheduleddThreadPool</code>:创建一个大小无限的线程池。此线程池支持定时以及周期性执行任务的需求。</li>
+</ul>
+<h2 id="4-_ThreadPoolExecutor_u8BE6_u89E3"><a href="#4-_ThreadPoolExecutor_u8BE6_u89E3" class="headerlink" title="4. ThreadPoolExecutor详解"></a>4. ThreadPoolExecutor详解</h2><h3 id="ThreadPoolExecutor"><a href="#ThreadPoolExecutor" class="headerlink" title="ThreadPoolExecutor"></a><code>ThreadPoolExecutor</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span><br><span class="line">                          <span class="keyword">int</span> maximumPoolSize,</span><br><span class="line">                          <span class="keyword">long</span> keepAliveTime,</span><br><span class="line">                          TimeUnit unit,</span><br><span class="line">                          BlockingQueue&lt;Runnable&gt; workQueue,</span><br><span class="line">                          ThreadFactory threadFactory,</span><br><span class="line">                          RejectedExecutionHandler handler)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (corePoolSize &lt; <span class="number">0</span> ||</span><br><span class="line">        maximumPoolSize &lt;= <span class="number">0</span> ||</span><br><span class="line">        maximumPoolSize &lt; corePoolSize ||</span><br><span class="line">        keepAliveTime &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">if</span> (workQueue == <span class="keyword">null</span> || threadFactory == <span class="keyword">null</span> || handler == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">this</span>.corePoolSize = corePoolSize;</span><br><span class="line">    <span class="keyword">this</span>.maximumPoolSize = maximumPoolSize;</span><br><span class="line">    <span class="keyword">this</span>.workQueue = workQueue;</span><br><span class="line">    <span class="keyword">this</span>.keepAliveTime = unit.toNanos(keepAliveTime);</span><br><span class="line">    <span class="keyword">this</span>.threadFactory = threadFactory;</span><br><span class="line">    <span class="keyword">this</span>.handler = handler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ThreadPoolExecutor构造函数，简单解释下几个参数的意义<br><code>corePoolSize</code> - 池中保存的线程数<br><code>maximumPoolSize</code> - 池中最大线程数<br><code>keepAliveTime</code> - 线程数大于<code>corePoolSize</code>时，终止多余的空闲线程的最大时间<br><code>unit</code> - <code>keeyAliveTime</code>参数的时间单位<br><code>workQuene</code> - 保持任务的队列，仅保持由execute提交的Runnable任务<br><code>threadFactory</code> - 创建新线程时使用的工厂<br><code>handler</code> - 由于超出线程范围和队列容量而使执行被阻塞时锁使用的处理程序</p>
+<h3 id="u5E38_u7528_u7684_u7EBF_u7A0B_u6C60_u6784_u9020_u5DE5_u5382"><a href="#u5E38_u7528_u7684_u7EBF_u7A0B_u6C60_u6784_u9020_u5DE5_u5382" class="headerlink" title="常用的线程池构造工厂"></a>常用的线程池构造工厂</h3><p>jdk中有这么一段注释<br><img src="/2016/02/14/thread-pool-summary/tps-1.png" alt=""><br>所以简单介绍下JDK推荐的构造线程池的方法</p>
+<ol>
+<li><p>newFixedThreadPool()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构造一个corePoolSize和maximumPoolSize的大小一样，且不使用keep alive和LinkedBlockingQueue&lt;Runnable&gt;的线程池。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newFixedThreadPool</span><span class="params">(<span class="keyword">int</span> nThreads)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>newSingleThreadExecutor()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//和newFixedThreadPool()类似，corePoolSize和maximumPoolSize的值都为1的线程池</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newSingleThreadExecutor</span><span class="params">()</span> </span>&#123;   </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> FinalizableDelegatedExecutorService   </span><br><span class="line">        (<span class="keyword">new</span> ThreadPoolExecutor(<span class="number">1</span>, <span class="number">1</span>,   </span><br><span class="line">                                <span class="number">0L</span>, TimeUnit.MILLISECONDS,   </span><br><span class="line">                                <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;()));   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>newCachedThreadPool()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构建一个maximumPoolSize为Integer.MAX_VALUE，任务队列为SynchronousQueue的线程池。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newCachedThreadPool</span><span class="params">()</span> </span>&#123;   </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE,   </span><br><span class="line">                                  <span class="number">60L</span>, TimeUnit.SECONDS,   </span><br><span class="line">                                  <span class="keyword">new</span> SynchronousQueue&lt;Runnable&gt;());   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>PS: 所有的BlockingQueue都可用于传输和保持提交的任务。（SynchronousQueue将任务直接提交给线程而不保持任务，如果不存在可用线程，则任务加入队列会失败，此队列可以避免在处理可能具有内部依赖性的请求集时出现锁。所以通常要求<code>maximumPoolSize</code>为无界来避免新任务提交到线程失败。LinkedBlockingQueue在线程数达到<code>corePoolSize</code>时，任务在队列中等待。创建的线程数不会超过<code>corePoolSize</code>，因此<code>maximumPoolSize</code>值就无效。当任务之间互相独立，互不影响适用无界队列）这个队列与线程池进行交互：</p>
+<ul>
+<li>如果运行的线程少于<code>corePoolSize</code>，则线程池始终会创建新线程执行任务，而不会进入队列。    </li>
+<li>如果运行的线程等于或大于<code>corePoolSize</code>且小于<code>maximumPoolSize</code>，线程池会请求加入队列，而不是创建新线程。</li>
+<li>如果运行线程大于<code>maximumPoolSize</code>，这种情况下，任务会被拒绝。</li>
+</ul>
+<h2 id="u5B9E_u4F8B"><a href="#u5B9E_u4F8B" class="headerlink" title="实例"></a>实例</h2><p>简单的按自己的理解封装了下线程池，详情看<a href="https://github.com/BensonZc/ThreadPoolDemo" target="_blank" rel="external">Demo</a>。欢迎批评指导！</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+	</div>
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
     <article id="post-2015-summarize" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
@@ -194,7 +286,7 @@
         
   
     <h1 itemprop="name">
-      <a class="article-title" href="/2016/02/06/2015-summarize/">2015-summarize</a>
+      <a class="article-title" href="/2016/02/06/2015-summarize/">2015总结</a>
     </h1>
   
 

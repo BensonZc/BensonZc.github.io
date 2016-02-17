@@ -4,7 +4,7 @@
   <subtitle><![CDATA[拥有满满的情怀和数码周边的码农]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://bensonzc.github.io/"/>
-  <updated>2016-02-06T02:38:14.286Z</updated>
+  <updated>2016-02-17T02:03:17.598Z</updated>
   <id>http://bensonzc.github.io/</id>
   
   <author>
@@ -15,11 +15,63 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
-    <title><![CDATA[2015-summarize]]></title>
+    <title><![CDATA[java线程池整理]]></title>
+    <link href="http://bensonzc.github.io/2016/02/14/thread-pool-summary/"/>
+    <id>http://bensonzc.github.io/2016/02/14/thread-pool-summary/</id>
+    <published>2016-02-14T06:08:32.000Z</published>
+    <updated>2016-02-17T02:03:17.598Z</updated>
+    <content type="html"><![CDATA[<p>年假前，闲来无事。对线程池的理解不是很系统，就索性稍微整理了下。</p>
+<h2 id="1-__u7EBF_u7A0B_u6C60_u4F5C_u7528"><a href="#1-__u7EBF_u7A0B_u6C60_u4F5C_u7528" class="headerlink" title="1. 线程池作用"></a>1. 线程池作用</h2><p>线程池作用就是限制系统中执行线程的数量。根据系统的环境情况，可以自动或手动设置线程数量，合理利用资源，达到最佳效果。线程池减少了创建和销毁线程的次数，每个工作线程可以被重复利用，执行多个任务。同时根据系统的承受能力，调整线程池中工作线程的数目。</p>
+<h2 id="2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790"><a href="#2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790" class="headerlink" title="2. 线程池类解析"></a>2. 线程池类解析</h2><ul>
+<li><code>ExecutorService</code> 真正的线程池接口</li>
+<li><code>ScheduledExecutorService</code> 和Timer/TimerTask类似，解决那些需要任务重复执行的问题</li>
+<li><code>ThreadPoolExecutor</code> ExecutorService的默认实现。</li>
+<li><code>ScheduledThreadPoolExecutor</code> 继承ThreadPoolExecutor和ScheduledExecutorService接口实现，周期性任务调度的类实现。</li>
+</ul>
+<p>配置一个线程池比较复杂，尤其是原理不清楚的情况下。这样配出来的线程池效果可能不是最优的，因此Executors类里面提供了一些惊呆工厂，生成一些常用的线程池。</p>
+<h2 id="3-__u5E38_u7528_u7684_u51E0_u4E2A_u7EBF_u7A0B_u6C60"><a href="#3-__u5E38_u7528_u7684_u51E0_u4E2A_u7EBF_u7A0B_u6C60" class="headerlink" title="3. 常用的几个线程池"></a>3. 常用的几个线程池</h2><ul>
+<li><code>newSingleThreadExecutor</code>:创建一个单线程的线程池。这个线程池只有一个线程在工作，也就是相当于单线程串行执行所有任务。如果线程出现异常结束，就会创建个新线程来代替。此线程池保证了所有任务按任务提交顺序执行。</li>
+<li><code>newFixedThreadPool</code>:创建固定大小的线程池。每次提交一个任务就创建一个线程，直到线程数达到线程池最大线程数。线程池的大小一旦叨叨最大值就会保持不变。</li>
+<li><code>newCachedThreadPool</code>:创建一个可缓存的线程池。如果线程池的大小超过了处理任务所需要的线程，会回收部分空闲线程，当任务数增加时，线程池又会智能的添加新线程来处理任务。线程池大小依赖于JVM能够创建的最大线程大小。</li>
+<li><code>newScheduleddThreadPool</code>:创建一个大小无限的线程池。此线程池支持定时以及周期性执行任务的需求。</li>
+</ul>
+<h2 id="4-_ThreadPoolExecutor_u8BE6_u89E3"><a href="#4-_ThreadPoolExecutor_u8BE6_u89E3" class="headerlink" title="4. ThreadPoolExecutor详解"></a>4. ThreadPoolExecutor详解</h2><h3 id="ThreadPoolExecutor"><a href="#ThreadPoolExecutor" class="headerlink" title="ThreadPoolExecutor"></a><code>ThreadPoolExecutor</code></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">ThreadPoolExecutor</span><span class="params">(<span class="keyword">int</span> corePoolSize,</span><br><span class="line">                          <span class="keyword">int</span> maximumPoolSize,</span><br><span class="line">                          <span class="keyword">long</span> keepAliveTime,</span><br><span class="line">                          TimeUnit unit,</span><br><span class="line">                          BlockingQueue&lt;Runnable&gt; workQueue,</span><br><span class="line">                          ThreadFactory threadFactory,</span><br><span class="line">                          RejectedExecutionHandler handler)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (corePoolSize &lt; <span class="number">0</span> ||</span><br><span class="line">        maximumPoolSize &lt;= <span class="number">0</span> ||</span><br><span class="line">        maximumPoolSize &lt; corePoolSize ||</span><br><span class="line">        keepAliveTime &lt; <span class="number">0</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="keyword">if</span> (workQueue == <span class="keyword">null</span> || threadFactory == <span class="keyword">null</span> || handler == <span class="keyword">null</span>)</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> NullPointerException();</span><br><span class="line">    <span class="keyword">this</span>.corePoolSize = corePoolSize;</span><br><span class="line">    <span class="keyword">this</span>.maximumPoolSize = maximumPoolSize;</span><br><span class="line">    <span class="keyword">this</span>.workQueue = workQueue;</span><br><span class="line">    <span class="keyword">this</span>.keepAliveTime = unit.toNanos(keepAliveTime);</span><br><span class="line">    <span class="keyword">this</span>.threadFactory = threadFactory;</span><br><span class="line">    <span class="keyword">this</span>.handler = handler;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ThreadPoolExecutor构造函数，简单解释下几个参数的意义<br><code>corePoolSize</code> - 池中保存的线程数<br><code>maximumPoolSize</code> - 池中最大线程数<br><code>keepAliveTime</code> - 线程数大于<code>corePoolSize</code>时，终止多余的空闲线程的最大时间<br><code>unit</code> - <code>keeyAliveTime</code>参数的时间单位<br><code>workQuene</code> - 保持任务的队列，仅保持由execute提交的Runnable任务<br><code>threadFactory</code> - 创建新线程时使用的工厂<br><code>handler</code> - 由于超出线程范围和队列容量而使执行被阻塞时锁使用的处理程序</p>
+<h3 id="u5E38_u7528_u7684_u7EBF_u7A0B_u6C60_u6784_u9020_u5DE5_u5382"><a href="#u5E38_u7528_u7684_u7EBF_u7A0B_u6C60_u6784_u9020_u5DE5_u5382" class="headerlink" title="常用的线程池构造工厂"></a>常用的线程池构造工厂</h3><p>jdk中有这么一段注释<br><img src="/2016/02/14/thread-pool-summary/tps-1.png" alt=""><br>所以简单介绍下JDK推荐的构造线程池的方法</p>
+<ol>
+<li><p>newFixedThreadPool()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构造一个corePoolSize和maximumPoolSize的大小一样，且不使用keep alive和LinkedBlockingQueue&lt;Runnable&gt;的线程池。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newFixedThreadPool</span><span class="params">(<span class="keyword">int</span> nThreads)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(nThreads, nThreads,</span><br><span class="line">                                  <span class="number">0L</span>, TimeUnit.MILLISECONDS,</span><br><span class="line">                                  <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>newSingleThreadExecutor()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//和newFixedThreadPool()类似，corePoolSize和maximumPoolSize的值都为1的线程池</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newSingleThreadExecutor</span><span class="params">()</span> </span>&#123;   </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> FinalizableDelegatedExecutorService   </span><br><span class="line">        (<span class="keyword">new</span> ThreadPoolExecutor(<span class="number">1</span>, <span class="number">1</span>,   </span><br><span class="line">                                <span class="number">0L</span>, TimeUnit.MILLISECONDS,   </span><br><span class="line">                                <span class="keyword">new</span> LinkedBlockingQueue&lt;Runnable&gt;()));   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>newCachedThreadPool()</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//构建一个maximumPoolSize为Integer.MAX_VALUE，任务队列为SynchronousQueue的线程池。</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorService <span class="title">newCachedThreadPool</span><span class="params">()</span> </span>&#123;   </span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> ThreadPoolExecutor(<span class="number">0</span>, Integer.MAX_VALUE,   </span><br><span class="line">                                  <span class="number">60L</span>, TimeUnit.SECONDS,   </span><br><span class="line">                                  <span class="keyword">new</span> SynchronousQueue&lt;Runnable&gt;());   </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>PS: 所有的BlockingQueue都可用于传输和保持提交的任务。（SynchronousQueue将任务直接提交给线程而不保持任务，如果不存在可用线程，则任务加入队列会失败，此队列可以避免在处理可能具有内部依赖性的请求集时出现锁。所以通常要求<code>maximumPoolSize</code>为无界来避免新任务提交到线程失败。LinkedBlockingQueue在线程数达到<code>corePoolSize</code>时，任务在队列中等待。创建的线程数不会超过<code>corePoolSize</code>，因此<code>maximumPoolSize</code>值就无效。当任务之间互相独立，互不影响适用无界队列）这个队列与线程池进行交互：</p>
+<ul>
+<li>如果运行的线程少于<code>corePoolSize</code>，则线程池始终会创建新线程执行任务，而不会进入队列。    </li>
+<li>如果运行的线程等于或大于<code>corePoolSize</code>且小于<code>maximumPoolSize</code>，线程池会请求加入队列，而不是创建新线程。</li>
+<li>如果运行线程大于<code>maximumPoolSize</code>，这种情况下，任务会被拒绝。</li>
+</ul>
+<h2 id="u5B9E_u4F8B"><a href="#u5B9E_u4F8B" class="headerlink" title="实例"></a>实例</h2><p>简单的按自己的理解封装了下线程池，详情看<a href="https://github.com/BensonZc/ThreadPoolDemo" target="_blank" rel="external">Demo</a>。欢迎批评指导！</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>年假前，闲来无事。对线程池的理解不是很系统，就索性稍微整理了下。</p>
+<h2 id="1-__u7EBF_u7A0B_u6C60_u4F5C_u7528"><a href="#1-__u7EBF_u7A0B_u6C60_u4F5C_u7528" class="heade]]>
+    </summary>
+    
+      <category term="java" scheme="http://bensonzc.github.io/tags/java/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[2015总结]]></title>
     <link href="http://bensonzc.github.io/2016/02/06/2015-summarize/"/>
     <id>http://bensonzc.github.io/2016/02/06/2015-summarize/</id>
     <published>2016-02-06T01:36:52.000Z</published>
-    <updated>2016-02-06T02:38:14.286Z</updated>
+    <updated>2016-02-14T06:40:29.515Z</updated>
     <content type="html"><![CDATA[<p>今天还要上班的朋友们，让我看到你们的双手…..<br>按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？</p>
 <p>2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗乐。不得不承认，学生时代的爱情是最真实的。没有社会物质的介入，只看脸……</p>
 <p>为了婚礼能在年底如期进行，老家的房子装修紧锣密鼓的。本想大展拳脚，最后不了了之。跟父母辈的审美鸿沟实在逾越不过去。不过也算切身的体验了一下装修，也算入了个门。后面为了工作方便，和老婆的小屋装修过程中尽量亲力亲为，拿个纸笔就开始干设计。虽然最后总有些不尽如人意的地方，但是整体大方向还是把握住了。算在装修领域正式入门了，跟同龄的同学同事聊起来，也算半个老司机了，忽悠起来不在话下。也算自成一派，跑各种建材厂挑选各种材料，研究各种家用电器的适用场景。勉强能帮到一些同学朋友。欢迎一起探讨。</p>
