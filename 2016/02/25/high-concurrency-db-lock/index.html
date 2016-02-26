@@ -4,21 +4,26 @@
   <meta charset="utf-8">
   
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
-  <title>2015总结 | BensonZc&#39;Blog</title>
+  <title>高并发数据库锁（乐观锁，悲观锁） | BensonZc&#39;Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="今天还要上班的朋友们，让我看到你们的双手…..按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？
-2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗">
+  <meta name="description" content="工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。从数据库层面来讲，最典型的就是悲观锁和乐观锁了
+悲观锁（Pessimisttic Locking）悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，">
 <meta property="og:type" content="article">
-<meta property="og:title" content="2015总结">
-<meta property="og:url" content="http://bensonzc.github.io/2016/02/06/2015-summarize/index.html">
+<meta property="og:title" content="高并发数据库锁（乐观锁，悲观锁）">
+<meta property="og:url" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/index.html">
 <meta property="og:site_name" content="BensonZc'Blog">
-<meta property="og:description" content="今天还要上班的朋友们，让我看到你们的双手…..按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？
-2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗">
-<meta property="og:updated_time" content="2016-02-14T06:40:29.515Z">
+<meta property="og:description" content="工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。从数据库层面来讲，最典型的就是悲观锁和乐观锁了
+悲观锁（Pessimisttic Locking）悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，">
+<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-1.png">
+<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-2.png">
+<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-3.png">
+<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-4.png">
+<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-5.png">
+<meta property="og:updated_time" content="2016-02-25T10:06:19.676Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="2015总结">
-<meta name="twitter:description" content="今天还要上班的朋友们，让我看到你们的双手…..按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？
-2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗">
+<meta name="twitter:title" content="高并发数据库锁（乐观锁，悲观锁）">
+<meta name="twitter:description" content="工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。从数据库层面来讲，最典型的就是悲观锁和乐观锁了
+悲观锁（Pessimisttic Locking）悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，">
   
     <link rel="alternative" href="/atom.xml" title="BensonZc&#39;Blog" type="application/atom+xml">
   
@@ -179,11 +184,11 @@
 	</div>
 </nav>
 
-      <div class="body-wrap"><article id="post-2015-summarize" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="post-high-concurrency-db-lock" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/02/06/2015-summarize/" class="article-date">
-  	<time datetime="2016-02-06T01:36:52.000Z" itemprop="datePublished">2016-02-06</time>
+      <a href="/2016/02/25/high-concurrency-db-lock/" class="article-date">
+  	<time datetime="2016-02-25T08:19:34.000Z" itemprop="datePublished">2016-02-25</time>
 </a>
     </div>
   
@@ -196,7 +201,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      2015总结
+      高并发数据库锁（乐观锁，悲观锁）
     </h1>
   
 
@@ -205,7 +210,7 @@
       <div class="article-info article-info-post">
         
 	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/生活/">生活</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/随记/">随记</a></li></ul>
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hibernate/">hibernate</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
 	</div>
 
         
@@ -216,12 +221,14 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>今天还要上班的朋友们，让我看到你们的双手…..<br>按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？</p>
-<p>2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗乐。不得不承认，学生时代的爱情是最真实的。没有社会物质的介入，只看脸……</p>
-<p>为了婚礼能在年底如期进行，老家的房子装修紧锣密鼓的。本想大展拳脚，最后不了了之。跟父母辈的审美鸿沟实在逾越不过去。不过也算切身的体验了一下装修，也算入了个门。后面为了工作方便，和老婆的小屋装修过程中尽量亲力亲为，拿个纸笔就开始干设计。虽然最后总有些不尽如人意的地方，但是整体大方向还是把握住了。算在装修领域正式入门了，跟同龄的同学同事聊起来，也算半个老司机了，忽悠起来不在话下。也算自成一派，跑各种建材厂挑选各种材料，研究各种家用电器的适用场景。勉强能帮到一些同学朋友。欢迎一起探讨。</p>
-<p>结婚免不了蜜月，因为穷，只能国内游。最后选了台湾，老婆全权负责旅行安排和房间机票订购。先是直飞高雄，入住有吾客栈（是一个从失望，满意，惊喜，到不舍的民宿）当天晚上就直奔瑞丰夜市，我一直觉得旅游就是个吃。一晚上都是烤炸的小吃加古早味红茶。第二天租个小电动车，晃悠在西子湾和旗津岛。晚上到市中心体验了下台湾的自助。第三天拼了个的士到垦丁，本人城市就靠海。所以到垦丁对看海没多大兴趣，但是骑租来的摩托然后被海风吹得噼里啪啦得感觉还是不错的，顺带赞下后壁湖的海鲜，真的是鲜且便宜。折合20RMB的一盘生鱼片，就问你怕不怕？垦丁呆了一天，第三天就高铁到了台北，进城了。陪老婆逛的是纪念馆啊，博物馆啊。台湾给我留下的印象真的是舒服，人民整体素质的确比较高。和老婆约定下次有机会再来。写博文的今天得知台湾6.7级地震？！高雄好像尤其惨重。从台湾旅游回来后，由于本人也是闽南地区。一直跟老婆戏称高雄是我的故乡，只能心里默默祈祷祝安好！灾难退散！</p>
-<p>旅游回来后，就是各种败家，给自己小屋添置各种东西。购买各个部件，尝试了下装机。部了家庭千兆网，搞了家庭NAS。然后就没钱了。后面还想败一堆情怀模型手办。</p>
-<p>随意记录了下一年里留下深刻印象的几件事，文笔太差，其他大大小小的事就不记了，心里想着的是—–怎么还不通知提早下班？</p>
+        <p>工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。<br>从数据库层面来讲，最典型的就是<strong>悲观锁</strong>和<strong>乐观锁了</strong></p>
+<h3 id="u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09"><a href="#u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09" class="headerlink" title="悲观锁（Pessimisttic Locking）"></a>悲观锁（Pessimisttic Locking）</h3><p>悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，也无法保证外部系统不会修改数据）。<br><code>select * from table where column = “test” for update</code>这句sql锁定了table表中所有column为test的数据。本次事务提交之前，外界无法修改这些数据。<br>数据锁定时，其他线程或事务进行更新操作时，会等待锁释放后才能获取到数据。<strong>不加锁的查询</strong>操作不影响。</p>
+<p><img src="/2016/02/25/high-concurrency-db-lock/hcdl-1.png" alt=""><br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-2.png" alt=""></p>
+<p>LockOptions是LockMode的简单封装，在LockMode的基础上提供了timeout（是否等待锁释放）和scope（是否锁关联数据）。<code>JDK在注释中推荐使用LockOptions加锁，本人试过用LockMode加锁，有部分锁发现没有效果。具体原因查过，未知。但是不妨碍日常使用。</code>其中LockMode.UPGRADE_NOWAIT，Oracle特定实现，NOWAITT表明如果执行该select语句的事务不能立即获得悲观锁,那么不会等待其它事务释放锁,而是立刻抛出锁定异常</p>
+<p><strong>只有在查询开始之前（Hibernate生成sql之前）设定加锁，才会通过数据库的锁机制进行加锁。</strong></p>
+<h3 id="u4E50_u89C2_u9501_uFF08Optimistic_Locking_uFF09"><a href="#u4E50_u89C2_u9501_uFF08Optimistic_Locking_uFF09" class="headerlink" title="乐观锁（Optimistic Locking）"></a>乐观锁（Optimistic Locking）</h3><p>悲观锁依靠数据库的锁机制实现，保证操作的独占性。但带来了数据库性能的大量开销，特别是长事务。乐观锁解决了这个问题，乐观锁基于数据版本（Version）记录机制实现。即在表中增加字段version，更新数据的时候对version加一，提交数据时，与数据库表中的version比对，如果提交的数据version大于数据库表中的version则更新成功。反之抛出异常。</p>
+<p><strong>Hibernate集成了乐观锁</strong><br>加锁的表新增字段version用于数据版本控制。支持以下类型<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-3.png" alt=""><br>用@Version注解<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-4.png" alt=""><br>创建数据的时候。version会默认为0，更新数据的时候version会自动加一，若并发导致数据不同步，更新数据version小于等于数据库表version会抛出异常<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-5.png" alt=""><br>提示当前事务已被更新或删除了</p>
+<h3 id="u603B_u7ED3"><a href="#u603B_u7ED3" class="headerlink" title="总结"></a>总结</h3><p>悲观锁和乐观锁都有适用的场景，悲观锁很好的保持了数据的一致性，但是如果多个线程或事务并发，可能造成无限期等待。而乐观锁解决了这个问题，同时速度快，耗费性能低，只是多查了个字段，但是如果数据库是直接对外公开的话，外部是不受控制的，这时候就会产生脏数据。</p>
 
       
     </div>
@@ -231,18 +238,9 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/02/14/thread-pool-summary/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption"><</strong>
-      <div class="article-nav-title">
-        
-          java线程池整理
-        
-      </div>
-    </a>
   
-  
-    <a href="/2016/02/05/sonar-problem-list/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">Sonar常见问题整理</div>
+    <a href="/2016/02/23/hibernate-initialize/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">Hibernate.initialize()</div>
       <strong class="article-nav-caption">></strong>
     </a>
   
@@ -277,7 +275,7 @@
 
 <div class="duoshuo">
 	<!-- 多说评论框 start -->
-	<div class="ds-thread" data-thread-key="2015-summarize" data-title="2015总结" data-url="http://bensonzc.github.io/2016/02/06/2015-summarize/"></div>
+	<div class="ds-thread" data-thread-key="high-concurrency-db-lock" data-title="高并发数据库锁（乐观锁，悲观锁）" data-url="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/"></div>
 	<!-- 多说评论框 end -->
 	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 	<script type="text/javascript">

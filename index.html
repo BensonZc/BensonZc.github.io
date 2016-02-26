@@ -109,7 +109,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
 					</div>
 				</section>
 				
@@ -176,6 +176,130 @@
 </nav>
 
       <div class="body-wrap">
+  
+    <article id="post-high-concurrency-db-lock" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/02/25/high-concurrency-db-lock/" class="article-date">
+  	<time datetime="2016-02-25T08:19:34.000Z" itemprop="datePublished">2016-02-25</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/02/25/high-concurrency-db-lock/">高并发数据库锁（乐观锁，悲观锁）</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。<br>从数据库层面来讲，最典型的就是<strong>悲观锁</strong>和<strong>乐观锁了</strong></p>
+<h3 id="u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09"><a href="#u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09" class="headerlink" title="悲观锁（Pessimisttic Locking）"></a>悲观锁（Pessimisttic Locking）</h3><p>悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，也无法保证外部系统不会修改数据）。<br><code>select * from table where column = “test” for update</code>这句sql锁定了table表中所有column为test的数据。本次事务提交之前，外界无法修改这些数据。<br>数据锁定时，其他线程或事务进行更新操作时，会等待锁释放后才能获取到数据。<strong>不加锁的查询</strong>操作不影响。</p>
+<p><img src="/2016/02/25/high-concurrency-db-lock/hcdl-1.png" alt=""><br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-2.png" alt=""></p>
+<p>LockOptions是LockMode的简单封装，在LockMode的基础上提供了timeout（是否等待锁释放）和scope（是否锁关联数据）。<code>JDK在注释中推荐使用LockOptions加锁，本人试过用LockMode加锁，有部分锁发现没有效果。具体原因查过，未知。但是不妨碍日常使用。</code>其中LockMode.UPGRADE_NOWAIT，Oracle特定实现，NOWAITT表明如果执行该select语句的事务不能立即获得悲观锁,那么不会等待其它事务释放锁,而是立刻抛出锁定异常</p>
+<p><strong>只有在查询开始之前（Hibernate生成sql之前）设定加锁，才会通过数据库的锁机制进行加锁。</strong></p>
+<h3 id="u4E50_u89C2_u9501_uFF08Optimistic_Locking_uFF09"><a href="#u4E50_u89C2_u9501_uFF08Optimistic_Locking_uFF09" class="headerlink" title="乐观锁（Optimistic Locking）"></a>乐观锁（Optimistic Locking）</h3><p>悲观锁依靠数据库的锁机制实现，保证操作的独占性。但带来了数据库性能的大量开销，特别是长事务。乐观锁解决了这个问题，乐观锁基于数据版本（Version）记录机制实现。即在表中增加字段version，更新数据的时候对version加一，提交数据时，与数据库表中的version比对，如果提交的数据version大于数据库表中的version则更新成功。反之抛出异常。</p>
+<p><strong>Hibernate集成了乐观锁</strong><br>加锁的表新增字段version用于数据版本控制。支持以下类型<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-3.png" alt=""><br>用@Version注解<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-4.png" alt=""><br>创建数据的时候。version会默认为0，更新数据的时候version会自动加一，若并发导致数据不同步，更新数据version小于等于数据库表version会抛出异常<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-5.png" alt=""><br>提示当前事务已被更新或删除了</p>
+<h3 id="u603B_u7ED3"><a href="#u603B_u7ED3" class="headerlink" title="总结"></a>总结</h3><p>悲观锁和乐观锁都有适用的场景，悲观锁很好的保持了数据的一致性，但是如果多个线程或事务并发，可能造成无限期等待。而乐观锁解决了这个问题，同时速度快，耗费性能低，只是多查了个字段，但是如果数据库是直接对外公开的话，外部是不受控制的，这时候就会产生脏数据。</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hibernate/">hibernate</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+	</div>
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
+    <article id="post-hibernate-initialize" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/02/23/hibernate-initialize/" class="article-date">
+  	<time datetime="2016-02-23T08:24:52.000Z" itemprop="datePublished">2016-02-23</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/02/23/hibernate-initialize/">Hibernate.initialize()</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>使用hibernate进行持久化时，有时需要动态的改变对象的加载方式。配置中lazy属性是全局控制的。这时候需要Hibernate.initialize()。</p>
+<p>###lazy加载</p>
+<p>当元素lazy属性为true时，load(),get(),find()加载对象时，不会马上产生select。只是产生一个Obj代理类实例。lazy为false时，则会马上执行select来加载对象。</p>
+<p>只有在session没有关闭的情况下Obj.getXXX()时会执行select语句从数据库加载对象，如果没有调用Obj.getXXX()方法，而session已经关闭，Obj成游离状态。这时候再调用Obj.getXXX()方法，Hibernate会抛出<code>Could not initialize proxy - the owning Session was closeed</code>的异常。Obj代理类实例无法被初始化。想在这种情况下调用到对象。只要在session关闭前调用Hibernate.initialize(Obj obj)静态方法，初始化代理类实例。</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hibernate/">hibernate</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+	</div>
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
   
     <article id="post-thread-pool-summary" class="article article-type-post" itemscope itemprop="blogPost">
   
