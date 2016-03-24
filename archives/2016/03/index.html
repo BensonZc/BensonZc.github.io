@@ -4,27 +4,17 @@
   <meta charset="utf-8">
   
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
-  <title>Hibernate.initialize() | BensonZc&#39;Blog</title>
+  <title>Archives: 2016/3 | BensonZc&#39;Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="使用hibernate进行持久化时，有时需要动态的改变对象的加载方式。配置中lazy属性是全局控制的。这时候需要Hibernate.initialize()。
-###lazy加载
-当元素lazy属性为true时，load(),get(),find()加载对象时，不会马上产生select。只是产生一个Obj代理类实例。lazy为false时，则会马上执行select来加载对象。
-只有在session">
-<meta property="og:type" content="article">
-<meta property="og:title" content="Hibernate.initialize()">
-<meta property="og:url" content="http://bensonzc.github.io/2016/02/23/hibernate-initialize/index.html">
+  <meta name="description">
+<meta property="og:type" content="website">
+<meta property="og:title" content="BensonZc'Blog">
+<meta property="og:url" content="http://bensonzc.github.io/archives/2016/03/index.html">
 <meta property="og:site_name" content="BensonZc'Blog">
-<meta property="og:description" content="使用hibernate进行持久化时，有时需要动态的改变对象的加载方式。配置中lazy属性是全局控制的。这时候需要Hibernate.initialize()。
-###lazy加载
-当元素lazy属性为true时，load(),get(),find()加载对象时，不会马上产生select。只是产生一个Obj代理类实例。lazy为false时，则会马上执行select来加载对象。
-只有在session">
-<meta property="og:updated_time" content="2016-02-23T08:33:28.139Z">
+<meta property="og:description">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Hibernate.initialize()">
-<meta name="twitter:description" content="使用hibernate进行持久化时，有时需要动态的改变对象的加载方式。配置中lazy属性是全局控制的。这时候需要Hibernate.initialize()。
-###lazy加载
-当元素lazy属性为true时，load(),get(),find()加载对象时，不会马上产生select。只是产生一个Obj代理类实例。lazy为false时，则会马上执行select来加载对象。
-只有在session">
+<meta name="twitter:title" content="BensonZc'Blog">
+<meta name="twitter:description">
   
     <link rel="alternative" href="/atom.xml" title="BensonZc&#39;Blog" type="application/atom+xml">
   
@@ -185,121 +175,53 @@
 	</div>
 </nav>
 
-      <div class="body-wrap"><article id="post-hibernate-initialize" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap">
   
-    <div class="article-meta">
-      <a href="/2016/02/23/hibernate-initialize/" class="article-date">
-  	<time datetime="2016-02-23T08:24:52.000Z" itemprop="datePublished">2016-02-23</time>
+  
+    
+    
+      
+      
+      <section class="archives-wrap">
+        <div class="archive-year-wrap">
+          <a href="/archives/2016" class="archive-year">2016</a>
+        </div>
+        <div class="archives">
+    
+    <article class="archive-article archive-type-post">
+  <div class="archive-article-inner">
+    <header class="archive-article-header">
+      	<div class="article-meta">
+	      	<a href="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/" class="archive-article-date">
+  	<time datetime="2016-03-24T06:01:23.000Z" itemprop="datePublished">Mar 24</time>
 </a>
-    </div>
+        </div>
+    	 
   
-  <div class="article-inner">
-    
-      <input type="hidden" class="isFancy" />
-    
-    
-      <header class="article-header">
-        
-  
-    <h1 class="article-title" itemprop="name">
-      Hibernate.initialize()
+    <h1 itemprop="name">
+      <a class="archive-article-title" href="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/">PostgreSQL高并发单行更新死锁</a>
     </h1>
   
 
-      </header>
-      
-      <div class="article-info article-info-post">
-        
+        <div class="article-info info-on-right">
+          
 	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hibernate/">hibernate</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/postgresql/">postgresql</a></li></ul>
 	</div>
 
-        
+          
 
+        </div>
         <div class="clearfix"></div>
-      </div>
-      
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-        <p>使用hibernate进行持久化时，有时需要动态的改变对象的加载方式。配置中lazy属性是全局控制的。这时候需要Hibernate.initialize()。</p>
-<p>###lazy加载</p>
-<p>当元素lazy属性为true时，load(),get(),find()加载对象时，不会马上产生select。只是产生一个Obj代理类实例。lazy为false时，则会马上执行select来加载对象。</p>
-<p>只有在session没有关闭的情况下Obj.getXXX()时会执行select语句从数据库加载对象，如果没有调用Obj.getXXX()方法，而session已经关闭，Obj成游离状态。这时候再调用Obj.getXXX()方法，Hibernate会抛出<code>Could not initialize proxy - the owning Session was closeed</code>的异常。Obj代理类实例无法被初始化。想在这种情况下调用到对象。只要在session关闭前调用Hibernate.initialize(Obj obj)静态方法，初始化代理类实例。</p>
-
-      
-    </div>
-    
+    </header>
   </div>
-  
-    
-<nav id="article-nav">
-  
-    <a href="/2016/02/25/high-concurrency-db-lock/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption"><</strong>
-      <div class="article-nav-title">
-        
-          高并发数据库锁（乐观锁，悲观锁）
-        
-      </div>
-    </a>
-  
-  
-    <a href="/2016/02/14/thread-pool-summary/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">java线程池整理</div>
-      <strong class="article-nav-caption">></strong>
-    </a>
-  
-</nav>
-
-  
 </article>
+  
+  
+    </div></section>
+  
 
-
-<div class="share_jia">
-	<!-- JiaThis Button BEGIN -->
-	<div class="jiathis_style">
-		<span class="jiathis_txt">分享到: &nbsp; </span>
-		<!-- <a class="jiathis_button_facebook"></a>  -->
-		<!-- <a class="jiathis_button_twitter"></a> -->
-		<a class="jiathis_button_plus"></a> 
-		<a class="jiathis_button_tsina"></a>
-		<a class="jiathis_button_cqq"></a>
-		<a class="jiathis_button_douban"></a>
-		<a class="jiathis_button_weixin"></a>
-		<!-- <a class="jiathis_button_tumblr"></a> -->
-    <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
-	</div>
-	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
-	<!-- JiaThis Button END -->
-</div>
-
-
-
-
-
-
-<div class="duoshuo">
-	<!-- 多说评论框 start -->
-	<div class="ds-thread" data-thread-key="hibernate-initialize" data-title="Hibernate.initialize()" data-url="http://bensonzc.github.io/2016/02/23/hibernate-initialize/"></div>
-	<!-- 多说评论框 end -->
-	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
-	<script type="text/javascript">
-	var duoshuoQuery = {short_name:"bensonzc"};
-	(function() {
-		var ds = document.createElement('script');
-		ds.type = 'text/javascript';ds.async = true;
-		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
-		ds.charset = 'UTF-8';
-		(document.getElementsByTagName('head')[0] 
-		 || document.getElementsByTagName('body')[0]).appendChild(ds);
-	})();
-	</script>
-	<!-- 多说公共JS代码 end -->
-</div>
-
-
-
+    
 
 </div>
       <footer id="footer">
@@ -325,8 +247,8 @@
 		mathjax: true,
 		animate: true,
 		isHome: false,
-		isPost: true,
-		isArchive: false,
+		isPost: false,
+		isArchive: true,
 		isTag: false,
 		isCategory: false,
 		open_in_new: false

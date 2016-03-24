@@ -4,7 +4,7 @@
   <subtitle><![CDATA[拥有满满的情怀和数码周边的码农]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://bensonzc.github.io/"/>
-  <updated>2016-02-25T10:06:19.000Z</updated>
+  <updated>2016-03-24T09:36:58.505Z</updated>
   <id>http://bensonzc.github.io/</id>
   
   <author>
@@ -15,11 +15,39 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[PostgreSQL高并发单行更新死锁]]></title>
+    <link href="http://bensonzc.github.io/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/"/>
+    <id>http://bensonzc.github.io/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/</id>
+    <published>2016-03-24T06:01:23.000Z</published>
+    <updated>2016-03-24T09:36:58.505Z</updated>
+    <content type="html"><![CDATA[<p>工作项目中由于高并发的原因，在数据库处理中加入悲观锁，乐观锁。相安无事几天后测试发出了一段错误日志：<br><img src="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/dihcsrup-1.png" alt=""><br>这日志说明太明显了，<strong>死锁</strong>，吓得我赶紧翻代码仔细排查一遍，看看到底哪里可能出现死锁…..无果…被老司机同事提醒了下，发现了psql官方社区邮件列表<br><a href="http://www.postgresql.org/message-id/20140731233051.GN17765@andrew-ThinkPad-X230" target="_blank" rel="external">http://www.postgresql.org/message-id/20140731233051.GN17765@andrew-ThinkPad-X230</a></p>
+<p>原来是个已知BUG，翻了下社区的新闻。几次版本的更新都有对死锁的情况进行了优化，但是不幸的是没有找到确切的更新说明解决了该问题。只能希望后续跟进吧。</p>
+<h3 id="u65B0_u8FDB_u5C55"><a href="#u65B0_u8FDB_u5C55" class="headerlink" title="新进展"></a>新进展</h3><p>PostgreSQL详细的<a href="http://www.postgresql.org/docs/current/static/mvcc.html" target="_blank" rel="external">发布文档(9.5.1版本)</a>中有提到该问题<br><img src="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/dihcsrup-2.png" alt=""><br>其中13.3.4. DeadLocks中说明了此类问题出现的情况。自行阅读啦，我这英语渣都看懂了。下面是搬运：<br>13.3.4. Deadlocks</p>
+<p>The use of explicit locking can increase the likelihood of deadlocks, wherein two (or more) transactions each hold locks that the other wants. For example, if transaction 1 acquires an exclusive lock on table A and then tries to acquire an exclusive lock on table B, while transaction 2 has already exclusive-locked table B and now wants an exclusive lock on table A, then neither one can proceed. PostgreSQL automatically detects deadlock situations and resolves them by aborting one of the transactions involved, allowing the other(s) to complete. (Exactly which transaction will be aborted is difficult to predict and should not be relied upon.)</p>
+<p>Note that deadlocks can also occur as the result of row-level locks (and thus, they can occur even if explicit locking is not used). Consider the case in which two concurrent transactions modify a table. The first transaction executes:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance + <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">11111</span>;</span></span><br></pre></td></tr></table></figure></p>
+<p>This acquires a row-level lock on the row with the specified account number. Then, the second transaction executes:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance + <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">22222</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance - <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">11111</span>;</span></span><br></pre></td></tr></table></figure></p>
+<p>The first UPDATE statement successfully acquires a row-level lock on the specified row, so it succeeds in updating that row. However, the second UPDATE statement finds that the row it is attempting to update has already been locked, so it waits for the transaction that acquired the lock to complete. Transaction two is now waiting on transaction one to complete before it continues execution. Now, transaction one executes:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance - <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">22222</span>;</span></span><br></pre></td></tr></table></figure></p>
+<p>Transaction one attempts to acquire a row-level lock on the specified row, but it cannot: transaction two already holds such a lock. So it waits for transaction two to complete. Thus, transaction one is blocked on transaction two, and transaction two is blocked on transaction one: a deadlock condition. PostgreSQL will detect this situation and abort one of the transactions.</p>
+<p>The best defense against deadlocks is generally to avoid them by being certain that all applications using a database acquire locks on multiple objects in a consistent order. In the example above, if both transactions had updated the rows in the same order, no deadlock would have occurred. One should also ensure that the first lock acquired on an object in a transaction is the most restrictive mode that will be needed for that object. If it is not feasible to verify this in advance, then deadlocks can be handled on-the-fly by retrying transactions that abort due to deadlocks.</p>
+<p>So long as no deadlock situation is detected, a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released. This means it is a bad idea for applications to hold transactions open for long periods of time (e.g., while waiting for user input).</p>
+<p>简单总结下：事务1中操作TableA和TableB（或者关联导致操作了多张表），事务1获取了TableA的锁，尝试去获取TableB的锁。事务2中也操作了TableA和TableB，事务2获取了TableB的锁，尝试去获取TableA的锁。从而导致了死锁。</p>
+<h3 id="PostgreSQL_u6700_u7EC8_u4E5F_u6CA1_u6709_u4E2A_u5F7B_u5E95_u7684_u89E3_u51B3_u65B9_u6848_uFF0C_u53EF_u80FD_u662F_u6211_u67E5_u9605_u8D44_u6599_u4E0D_u591F_u3002_u5982_u679C_u6709_u4EBA_u6709_u65B0_u53D1_u73B0_uFF0C_u8BF7_u5E7F_u800C_u544A_u4E4B_u3002"><a href="#PostgreSQL_u6700_u7EC8_u4E5F_u6CA1_u6709_u4E2A_u5F7B_u5E95_u7684_u89E3_u51B3_u65B9_u6848_uFF0C_u53EF_u80FD_u662F_u6211_u67E5_u9605_u8D44_u6599_u4E0D_u591F_u3002_u5982_u679C_u6709_u4EBA_u6709_u65B0_u53D1_u73B0_uFF0C_u8BF7_u5E7F_u800C_u544A_u4E4B_u3002" class="headerlink" title="PostgreSQL最终也没有个彻底的解决方案，可能是我查阅资料不够。如果有人有新发现，请广而告之。"></a>PostgreSQL最终也没有个彻底的解决方案，可能是我查阅资料不够。如果有人有新发现，请广而告之。</h3>]]></content>
+    <summary type="html">
+    <![CDATA[<p>工作项目中由于高并发的原因，在数据库处理中加入悲观锁，乐观锁。相安无事几天后测试发出了一段错误日志：<br><img src="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/dih]]>
+    </summary>
+    
+      <category term="java" scheme="http://bensonzc.github.io/tags/java/"/>
+    
+      <category term="postgresql" scheme="http://bensonzc.github.io/tags/postgresql/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[高并发数据库锁（乐观锁，悲观锁）]]></title>
     <link href="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/"/>
     <id>http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/</id>
     <published>2016-02-25T08:19:34.000Z</published>
-    <updated>2016-02-25T10:06:19.000Z</updated>
+    <updated>2016-02-25T10:06:19.676Z</updated>
     <content type="html"><![CDATA[<p>工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。<br>从数据库层面来讲，最典型的就是<strong>悲观锁</strong>和<strong>乐观锁了</strong></p>
 <h3 id="u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09"><a href="#u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09" class="headerlink" title="悲观锁（Pessimisttic Locking）"></a>悲观锁（Pessimisttic Locking）</h3><p>悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，也无法保证外部系统不会修改数据）。<br><code>select * from table where column = “test” for update</code>这句sql锁定了table表中所有column为test的数据。本次事务提交之前，外界无法修改这些数据。<br>数据锁定时，其他线程或事务进行更新操作时，会等待锁释放后才能获取到数据。<strong>不加锁的查询</strong>操作不影响。</p>
 <p><img src="/2016/02/25/high-concurrency-db-lock/hcdl-1.png" alt=""><br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-2.png" alt=""></p>
@@ -45,7 +73,7 @@
     <link href="http://bensonzc.github.io/2016/02/23/hibernate-initialize/"/>
     <id>http://bensonzc.github.io/2016/02/23/hibernate-initialize/</id>
     <published>2016-02-23T08:24:52.000Z</published>
-    <updated>2016-02-23T08:33:28.000Z</updated>
+    <updated>2016-02-23T08:33:28.139Z</updated>
     <content type="html"><![CDATA[<p>使用hibernate进行持久化时，有时需要动态的改变对象的加载方式。配置中lazy属性是全局控制的。这时候需要Hibernate.initialize()。</p>
 <p>###lazy加载</p>
 <p>当元素lazy属性为true时，load(),get(),find()加载对象时，不会马上产生select。只是产生一个Obj代理类实例。lazy为false时，则会马上执行select来加载对象。</p>
@@ -68,7 +96,7 @@
     <link href="http://bensonzc.github.io/2016/02/14/thread-pool-summary/"/>
     <id>http://bensonzc.github.io/2016/02/14/thread-pool-summary/</id>
     <published>2016-02-14T06:08:32.000Z</published>
-    <updated>2016-02-17T02:03:17.000Z</updated>
+    <updated>2016-02-17T02:03:17.598Z</updated>
     <content type="html"><![CDATA[<p>年假前，闲来无事。对线程池的理解不是很系统，就索性稍微整理了下。</p>
 <h2 id="1-__u7EBF_u7A0B_u6C60_u4F5C_u7528"><a href="#1-__u7EBF_u7A0B_u6C60_u4F5C_u7528" class="headerlink" title="1. 线程池作用"></a>1. 线程池作用</h2><p>线程池作用就是限制系统中执行线程的数量。根据系统的环境情况，可以自动或手动设置线程数量，合理利用资源，达到最佳效果。线程池减少了创建和销毁线程的次数，每个工作线程可以被重复利用，执行多个任务。同时根据系统的承受能力，调整线程池中工作线程的数目。</p>
 <h2 id="2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790"><a href="#2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790" class="headerlink" title="2. 线程池类解析"></a>2. 线程池类解析</h2><ul>
@@ -120,7 +148,7 @@
     <link href="http://bensonzc.github.io/2016/02/06/2015-summarize/"/>
     <id>http://bensonzc.github.io/2016/02/06/2015-summarize/</id>
     <published>2016-02-06T01:36:52.000Z</published>
-    <updated>2016-02-14T06:40:29.000Z</updated>
+    <updated>2016-02-14T06:40:29.515Z</updated>
     <content type="html"><![CDATA[<p>今天还要上班的朋友们，让我看到你们的双手…..<br>按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？</p>
 <p>2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗乐。不得不承认，学生时代的爱情是最真实的。没有社会物质的介入，只看脸……</p>
 <p>为了婚礼能在年底如期进行，老家的房子装修紧锣密鼓的。本想大展拳脚，最后不了了之。跟父母辈的审美鸿沟实在逾越不过去。不过也算切身的体验了一下装修，也算入了个门。后面为了工作方便，和老婆的小屋装修过程中尽量亲力亲为，拿个纸笔就开始干设计。虽然最后总有些不尽如人意的地方，但是整体大方向还是把握住了。算在装修领域正式入门了，跟同龄的同学同事聊起来，也算半个老司机了，忽悠起来不在话下。也算自成一派，跑各种建材厂挑选各种材料，研究各种家用电器的适用场景。勉强能帮到一些同学朋友。欢迎一起探讨。</p>
@@ -144,7 +172,7 @@
     <link href="http://bensonzc.github.io/2016/02/05/sonar-problem-list/"/>
     <id>http://bensonzc.github.io/2016/02/05/sonar-problem-list/</id>
     <published>2016-02-05T07:15:21.000Z</published>
-    <updated>2016-02-29T08:00:42.000Z</updated>
+    <updated>2016-02-29T08:00:42.615Z</updated>
     <content type="html"><![CDATA[<p><a href="http://www.sonarqube.org/" target="_blank" rel="external">Sonar</a>是一个开源平台，用于管理Java源代码的质量。本章知识介绍Sonar检验代码常出现的几个问题：</p>
 <ul>
 <li><p>安全-直接保存数组：<code>The user-supplied array &#39;xxxx&#39; is stored directly</code><br>例子：</p>
@@ -205,7 +233,7 @@
     <link href="http://bensonzc.github.io/2016/02/05/how-to-deploy-https-project/"/>
     <id>http://bensonzc.github.io/2016/02/05/how-to-deploy-https-project/</id>
     <published>2016-02-05T06:30:50.000Z</published>
-    <updated>2016-02-05T07:14:51.000Z</updated>
+    <updated>2016-02-05T07:14:51.718Z</updated>
     <content type="html"><![CDATA[<p>前段时间接了个外包项目，终端IOS要求请求走https。之前https都是某同事在倒腾，没有学习理解过，查了一些资料自己做点总结。</p>
 <h2 id="1-__u4F55_u4E3Ahttps"><a href="#1-__u4F55_u4E3Ahttps" class="headerlink" title="1. 何为https"></a>1. 何为https</h2><p>高大上的理论解释网上一搜一打，就不做解释了。这里做最简单最通俗的解释：http的安全版本。通过在http下加入SSL层。一般意义上的https就是在服务器上有一个证书，服务端与客户端之间所有通讯都是加密的。客户端向服务端握个手，初始化下SSL层。这时候客户端和服务端就可以愉快的沟通了。这里主要介绍下复杂的SSL握手。</p>
 <h3 id="SSL_u63E1_u624B_uFF08_u5355_u5411_u8BA4_u8BC1_uFF09"><a href="#SSL_u63E1_u624B_uFF08_u5355_u5411_u8BA4_u8BC1_uFF09" class="headerlink" title="SSL握手（单向认证）"></a>SSL握手（单向认证）</h3><ol>

@@ -69,10 +69,10 @@
 					<div class="tips-arrow"></div>
 					<ul class="tips-inner">
 						<li>菜单</li>
-						<li>标签</li>
+						<li>Tags</li>
 						
 						
-						<li>关于我</li>
+						<li>Über</li>
 						
 					</ul>
 				</div>
@@ -109,7 +109,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
 					</div>
 				</section>
 				
@@ -176,6 +176,73 @@
 </nav>
 
       <div class="body-wrap">
+  
+    <article id="post-deadlock-in-high-concurrency-single-row-update-postgresql" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/" class="article-date">
+  	<time datetime="2016-03-24T06:01:23.000Z" itemprop="datePublished">2016-03-24</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/">PostgreSQL高并发单行更新死锁</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>工作项目中由于高并发的原因，在数据库处理中加入悲观锁，乐观锁。相安无事几天后测试发出了一段错误日志：<br><img src="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/dihcsrup-1.png" alt=""><br>这日志说明太明显了，<strong>死锁</strong>，吓得我赶紧翻代码仔细排查一遍，看看到底哪里可能出现死锁…..无果…被老司机同事提醒了下，发现了psql官方社区邮件列表<br><a href="http://www.postgresql.org/message-id/20140731233051.GN17765@andrew-ThinkPad-X230" target="_blank" rel="external">http://www.postgresql.org/message-id/20140731233051.GN17765@andrew-ThinkPad-X230</a></p>
+<p>原来是个已知BUG，翻了下社区的新闻。几次版本的更新都有对死锁的情况进行了优化，但是不幸的是没有找到确切的更新说明解决了该问题。只能希望后续跟进吧。</p>
+<h3 id="u65B0_u8FDB_u5C55"><a href="#u65B0_u8FDB_u5C55" class="headerlink" title="新进展"></a>新进展</h3><p>PostgreSQL详细的<a href="http://www.postgresql.org/docs/current/static/mvcc.html" target="_blank" rel="external">发布文档(9.5.1版本)</a>中有提到该问题<br><img src="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/dihcsrup-2.png" alt=""><br>其中13.3.4. DeadLocks中说明了此类问题出现的情况。自行阅读啦，我这英语渣都看懂了。下面是搬运：<br>13.3.4. Deadlocks</p>
+<p>The use of explicit locking can increase the likelihood of deadlocks, wherein two (or more) transactions each hold locks that the other wants. For example, if transaction 1 acquires an exclusive lock on table A and then tries to acquire an exclusive lock on table B, while transaction 2 has already exclusive-locked table B and now wants an exclusive lock on table A, then neither one can proceed. PostgreSQL automatically detects deadlock situations and resolves them by aborting one of the transactions involved, allowing the other(s) to complete. (Exactly which transaction will be aborted is difficult to predict and should not be relied upon.)</p>
+<p>Note that deadlocks can also occur as the result of row-level locks (and thus, they can occur even if explicit locking is not used). Consider the case in which two concurrent transactions modify a table. The first transaction executes:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance + <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">11111</span>;</span></span><br></pre></td></tr></table></figure></p>
+<p>This acquires a row-level lock on the row with the specified account number. Then, the second transaction executes:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance + <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">22222</span>;</span></span><br><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance - <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">11111</span>;</span></span><br></pre></td></tr></table></figure></p>
+<p>The first UPDATE statement successfully acquires a row-level lock on the specified row, so it succeeds in updating that row. However, the second UPDATE statement finds that the row it is attempting to update has already been locked, so it waits for the transaction that acquired the lock to complete. Transaction two is now waiting on transaction one to complete before it continues execution. Now, transaction one executes:<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="operator"><span class="keyword">UPDATE</span> accounts <span class="keyword">SET</span> balance = balance - <span class="number">100.00</span> <span class="keyword">WHERE</span> acctnum = <span class="number">22222</span>;</span></span><br></pre></td></tr></table></figure></p>
+<p>Transaction one attempts to acquire a row-level lock on the specified row, but it cannot: transaction two already holds such a lock. So it waits for transaction two to complete. Thus, transaction one is blocked on transaction two, and transaction two is blocked on transaction one: a deadlock condition. PostgreSQL will detect this situation and abort one of the transactions.</p>
+<p>The best defense against deadlocks is generally to avoid them by being certain that all applications using a database acquire locks on multiple objects in a consistent order. In the example above, if both transactions had updated the rows in the same order, no deadlock would have occurred. One should also ensure that the first lock acquired on an object in a transaction is the most restrictive mode that will be needed for that object. If it is not feasible to verify this in advance, then deadlocks can be handled on-the-fly by retrying transactions that abort due to deadlocks.</p>
+<p>So long as no deadlock situation is detected, a transaction seeking either a table-level or row-level lock will wait indefinitely for conflicting locks to be released. This means it is a bad idea for applications to hold transactions open for long periods of time (e.g., while waiting for user input).</p>
+<p>简单总结下：事务1中操作TableA和TableB（或者关联导致操作了多张表），事务1获取了TableA的锁，尝试去获取TableB的锁。事务2中也操作了TableA和TableB，事务2获取了TableB的锁，尝试去获取TableA的锁。从而导致了死锁。</p>
+<h3 id="PostgreSQL_u6700_u7EC8_u4E5F_u6CA1_u6709_u4E2A_u5F7B_u5E95_u7684_u89E3_u51B3_u65B9_u6848_uFF0C_u53EF_u80FD_u662F_u6211_u67E5_u9605_u8D44_u6599_u4E0D_u591F_u3002_u5982_u679C_u6709_u4EBA_u6709_u65B0_u53D1_u73B0_uFF0C_u8BF7_u5E7F_u800C_u544A_u4E4B_u3002"><a href="#PostgreSQL_u6700_u7EC8_u4E5F_u6CA1_u6709_u4E2A_u5F7B_u5E95_u7684_u89E3_u51B3_u65B9_u6848_uFF0C_u53EF_u80FD_u662F_u6211_u67E5_u9605_u8D44_u6599_u4E0D_u591F_u3002_u5982_u679C_u6709_u4EBA_u6709_u65B0_u53D1_u73B0_uFF0C_u8BF7_u5E7F_u800C_u544A_u4E4B_u3002" class="headerlink" title="PostgreSQL最终也没有个彻底的解决方案，可能是我查阅资料不够。如果有人有新发现，请广而告之。"></a>PostgreSQL最终也没有个彻底的解决方案，可能是我查阅资料不够。如果有人有新发现，请广而告之。</h3>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/postgresql/">postgresql</a></li></ul>
+	</div>
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
   
     <article id="post-high-concurrency-db-lock" class="article article-type-post" itemscope itemprop="blogPost">
   
