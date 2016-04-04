@@ -4,7 +4,7 @@
   <subtitle><![CDATA[拥有满满的情怀和数码周边的码农]]></subtitle>
   <link href="/atom.xml" rel="self"/>
   <link href="http://bensonzc.github.io/"/>
-  <updated>2016-03-24T09:36:58.505Z</updated>
+  <updated>2016-04-01T08:27:35.000Z</updated>
   <id>http://bensonzc.github.io/</id>
   
   <author>
@@ -15,11 +15,99 @@
   <generator uri="http://hexo.io/">Hexo</generator>
   
   <entry>
+    <title><![CDATA[如何提升Web应用的性能]]></title>
+    <link href="http://bensonzc.github.io/2016/04/01/how-to-imporve-webapp-performance/"/>
+    <id>http://bensonzc.github.io/2016/04/01/how-to-imporve-webapp-performance/</id>
+    <published>2016-04-01T07:36:44.000Z</published>
+    <updated>2016-04-01T08:27:35.000Z</updated>
+    <content type="html"><![CDATA[<p>Web应用进入平稳期后，性能变得越来越重要，功能的重要性给则越来越低。产品的响应速度很大程度的决定了产品的生命。整理了下自己能力范围内的优化方案，期待后续的不断完善</p>
+<h3 id="1-_u5229_u7528_u53CD_u5411_u4EE3_u7406_u670D_u52A1_u5668"><a href="#1-_u5229_u7528_u53CD_u5411_u4EE3_u7406_u670D_u52A1_u5668" class="headerlink" title="1.利用反向代理服务器"></a>1.利用反向代理服务器</h3><p>如果Web应用运行在一台服务器上，性能问题的解决方案就是硬件的升级。但是硬件是有上限的，Web应用缓慢，是因为服务器一直在不同的任务间切换：与客户端的交互，访问磁盘上的文件，执行业务代码等等。最终内存耗尽，IO等待等问题崩溃。<br><strong>增加一个反向代理服务器来分担这些任务</strong>可以有效的提升Web应用的性能。反向代理服务器设置在运行Web应该用的服务器之前，用来处理网络流量。只有这台方向代理服务器直接连接到网络上，它和应用服务器通过内部的局域网或者其他快速的内部网络进行通信。<br>有了反向代理服务器，应用服务器不必再等待客户的响应，而是以最优的速度运行。同时也增加了应用服务器的弹性，如果某台服务器过载或者宕机了，也不会造成系统瘫痪。<br>反向代理服务器也成了很多其他性能提升方法的先决条件：</p>
+<ul>
+<li>负载均衡—-反向代理服务器上运行一个负载均衡器，把流量平均分配给了一堆的应用服务器。在增加应用服务器的时候完全不需要修改应用程序。</li>
+<li>缓存静态文件—-直接请求的文件，比如图片，js，css等代码文件，可以存放在反向代理服务器上，直接返回给客户端，使响应更快，也分担了应用服务器的负载。<br>Nginx就是专门设计做反向代理服务器的。</li>
+</ul>
+<h3 id="2-_u589E_u52A0_u4E00_u4E2A_u8D1F_u8F7D_u5747_u8861_u5668"><a href="#2-_u589E_u52A0_u4E00_u4E2A_u8D1F_u8F7D_u5747_u8861_u5668" class="headerlink" title="2.增加一个负载均衡器"></a>2.增加一个负载均衡器</h3><p>负载局衡器首先需要一个反向代理服务器，它接收网络流量，并把请求转交给另一个服务器。一个窍门就是让负载均衡器支持两台以上的应用服务器，利用一个选择算法在服务器间分配请求。最简单的方法就是轮询，每个新请求发送给列表中的下一台服务器。其它方法包括把请求发送给活动连接数量最少的服务器。<br>负载均衡器可以极大地改善性能，因为它们避免让一台服务器过载，而其它服务器却处于空闲的状态。它们也很容易扩展 Web 服务器的能力，增加相对便宜的服务器并确保它们物尽其用。</p>
+<h3 id="3-__u7F13_u5B58_u9759_u6001_u548C_u52A8_u6001_u5185_u5BB9"><a href="#3-__u7F13_u5B58_u9759_u6001_u548C_u52A8_u6001_u5185_u5BB9" class="headerlink" title="3. 缓存静态和动态内容"></a>3. 缓存静态和动态内容</h3><p>缓存通过更快地向客户端提供内容来改善 Web 应用的性能。<br>有两种类型的缓存需要考虑：</p>
+<ul>
+<li>静态内容的缓存，不经常变化的文件，比如图像文件和代码文件（css，js）可以存在一个服务器上，以便在内存或磁盘上进行快速检索。</li>
+<li>动态内容的缓存，很多Web应用为每个页面请求生成新的HTML，通过简单地将已经生成的HTML保存一小段时间，就可以大幅度减少需要生成页面的总数。</li>
+</ul>
+<h3 id="4-__u538B_u7F29_u6570_u636E"><a href="#4-__u538B_u7F29_u6570_u636E" class="headerlink" title="4. 压缩数据"></a>4. 压缩数据</h3><p>精心设计和高效的压缩标准可以大幅减少文件的大小，文本数据，THML,CSS,JavaScript的代码，压缩这些数据会大大改善Web应用性能的体验，特别是移动客户端。</p>
+<h3 id="5-__u4F18_u5316SSL/TLS"><a href="#5-__u4F18_u5316SSL/TLS" class="headerlink" title="5. 优化SSL/TLS"></a>5. 优化SSL/TLS</h3><p>SSL/TLS被越来越多的网站所采用，它们却在影响网站的性能。有两个原因影响了网站的性能：</p>
+<ul>
+<li>每当打开一个新的连接，最初的握手都需要建立加密密钥。浏览器使用 HTTP/1.x 和服务器建立多条连接，随着服务器的增多，连接会成倍增加。</li>
+<li>服务器上加密数据，客户端解密数据，这些都是持续的开销。</li>
+</ul>
+<p>优化SSL/TLS的机制因应用服务器而有所差别，Nginx使用OpenSSL，运行在标准硬件上，提供类似专用硬件解决方案的性能，减少了SSL/TLS加解密对CPU和时间的消耗。</p>
+<h4 id="u672C_u6587_u601D_u8DEF_u6765_u81EA_u4E8Ehttp_3A//www-kuqin-com/shuoit/20151127/349186-html"><a href="#u672C_u6587_u601D_u8DEF_u6765_u81EA_u4E8Ehttp_3A//www-kuqin-com/shuoit/20151127/349186-html" class="headerlink" title="本文思路来自于http://www.kuqin.com/shuoit/20151127/349186.html"></a>本文思路来自于<a href="http://www.kuqin.com/shuoit/20151127/349186.html" target="_blank" rel="external">http://www.kuqin.com/shuoit/20151127/349186.html</a></h4>]]></content>
+    <summary type="html">
+    <![CDATA[<p>Web应用进入平稳期后，性能变得越来越重要，功能的重要性给则越来越低。产品的响应速度很大程度的决定了产品的生命。整理了下自己能力范围内的优化方案，期待后续的不断完善</p>
+<h3 id="1-_u5229_u7528_u53CD_u5411_u4EE3_u7406_u67]]>
+    </summary>
+    
+      <category term="性能优化" scheme="http://bensonzc.github.io/tags/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/"/>
+    
+  </entry>
+  
+  <entry>
+    <title><![CDATA[面试汇总整理]]></title>
+    <link href="http://bensonzc.github.io/2016/04/01/java-interview-tips/"/>
+    <id>http://bensonzc.github.io/2016/04/01/java-interview-tips/</id>
+    <published>2016-04-01T01:33:30.000Z</published>
+    <updated>2016-04-01T07:32:24.000Z</updated>
+    <content type="html"><![CDATA[<p>这辈子肯定要面试很多次，就整理了下一些面试题的集合。包括Java，数据库等</p>
+<h2 id="1-_Java_u7BC7"><a href="#1-_Java_u7BC7" class="headerlink" title="1. Java篇"></a>1. Java篇</h2><p><strong>1. Java的HashMap和HashTable</strong><br>两个都是Map接口的子接口。HashMap允许NULL key和NULL value，而HashTable不允许。HashTable是线程安全的，而HashMap不是。</p>
+<p><strong>2. Java BlockingQuene是什么？</strong><br>Java BlockingQuene是一个并发集合util包中的一部分。BlockingQuene队列支持在队列为空时，获取元素的线程会等待队列变为非空。当队列满时，存储元素的线程会等待队列可用。常用于生产者-消费者模式中。多线程间信息传递尤其有用。</p>
+<p><strong>3. 什么时候使用ConcurrentHashMap？</strong><br>当有大量并发更新的时候，适合使用ConcurrentHashMap。与HashTable类似。但是ConcurrentHashMap不锁定整张表来提供并发，所以ConcurrentHashMap性能更好。</p>
+<p><strong>4. LinkedList和ArrayList</strong><br>ArrayList基于动态数组的数据结构，当操作是在一列数据的后面添加数据而不是在前面或中间,并且需要随机地访问其中的元素时,使用ArrayList会提供比较好的性能；。LinkedList基于链表的数据接口，当你的操作是在一列数据的前面或中间添加或删除数据,并且按照顺序访问其中的元素时,就应该使用LinkedList了。</p>
+<p><strong>5. Iterator和ListIterator区别</strong></p>
+<ul>
+<li>ListIterator有add()方法，可以向List添加元素，而Iterator不能。</li>
+<li>ListIterator可以实现顺序向前的遍历。而Iterator只能顺序向后的遍历。</li>
+<li>ListIterator可以实现对象修改（set()方法）。Iterator仅能遍历，不能修改。两者皆可删除对象。</li>
+</ul>
+<p><strong>6. HashMap如何同步？</strong></p>
+<ul>
+<li>使用Collections.synchronizedMap(…)来同步HashMap</li>
+<li>使用ConcurrentHashMap。<br>优先使用ConcurrentHashMap，因为这样就不需要锁定整个对象来获得锁。</li>
+</ul>
+<p><strong>7. Overload和Override的区别？Overload是否可以改变返回值类型？</strong><br>Overridingg（重写）和Overloading（重载）是Java多态性的不同表现，重写是父类与子类之间的多态，重载是一个类中的多态。子类定义了某个方法与父类有相同的名称和参数。说明该方法被重写了。如果在一个类中定义了多个同名方法，它们有不同的参数个数和参数类型，则称之为重载，重载可以改变返回值类型。</p>
+<p><strong>8. final，finally，finialize的区别</strong></p>
+<ul>
+<li>final修饰符，如果一个类被声明成final，说明它不能派生出新的子类，不能作为父类被继承。将变量或方法声明成final，可以保证它们在使用过程中不被改变。被声明成final的方法只能使用，不能Override，可以被Overload</li>
+<li>finally在异常处理中的一个块，来执行任何清除释放操作。无论是否抛出异常，程序都会进入finally块。</li>
+<li>finalize时候方法名，这个方法由垃圾收集器在确定这个对象没有被引用时对这个对象调用的。内存释放清理的操作。</li>
+</ul>
+<p><strong>9. Java创建线程的方式？</strong></p>
+<ul>
+<li>继承Thread类，重写run方法，start()启动线程。</li>
+<li>实现Runnable接口，实现run方法，装载入Thread中start()启动线程。</li>
+<li>使用Executor来创建线程池，通过execute启动线程。</li>
+</ul>
+<p><strong>10. Java集合类</strong></p>
+<ul>
+<li>Collection:一组对象，每个对象都是它的子元素。</li>
+<li>Set:不包含重复元素的Collection。</li>
+<li>List:有顺序的Collection，可以包含重复元素。</li>
+<li>Map:键(key)映射值(value)的对象，键不能重复。</li>
+</ul>
+<p><strong>11. Enumeration接口和Iterator接口区别</strong><br>Enumeration速度是Iterator的两倍，同时占用更少的内存，只提供遍历Vector和HashTable类型集合元素的功能。Iterator远比Enumeration安全，因为其他线程不能够修改正在被Iterator遍历的集合里面的对象。</p>
+]]></content>
+    <summary type="html">
+    <![CDATA[<p>这辈子肯定要面试很多次，就整理了下一些面试题的集合。包括Java，数据库等</p>
+<h2 id="1-_Java_u7BC7"><a href="#1-_Java_u7BC7" class="headerlink" title="1. Java篇"></a>1. Java]]>
+    </summary>
+    
+      <category term="java" scheme="http://bensonzc.github.io/tags/java/"/>
+    
+  </entry>
+  
+  <entry>
     <title><![CDATA[PostgreSQL高并发单行更新死锁]]></title>
     <link href="http://bensonzc.github.io/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/"/>
     <id>http://bensonzc.github.io/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/</id>
     <published>2016-03-24T06:01:23.000Z</published>
-    <updated>2016-03-24T09:36:58.505Z</updated>
+    <updated>2016-03-24T09:36:58.000Z</updated>
     <content type="html"><![CDATA[<p>工作项目中由于高并发的原因，在数据库处理中加入悲观锁，乐观锁。相安无事几天后测试发出了一段错误日志：<br><img src="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/dihcsrup-1.png" alt=""><br>这日志说明太明显了，<strong>死锁</strong>，吓得我赶紧翻代码仔细排查一遍，看看到底哪里可能出现死锁…..无果…被老司机同事提醒了下，发现了psql官方社区邮件列表<br><a href="http://www.postgresql.org/message-id/20140731233051.GN17765@andrew-ThinkPad-X230" target="_blank" rel="external">http://www.postgresql.org/message-id/20140731233051.GN17765@andrew-ThinkPad-X230</a></p>
 <p>原来是个已知BUG，翻了下社区的新闻。几次版本的更新都有对死锁的情况进行了优化，但是不幸的是没有找到确切的更新说明解决了该问题。只能希望后续跟进吧。</p>
 <h3 id="u65B0_u8FDB_u5C55"><a href="#u65B0_u8FDB_u5C55" class="headerlink" title="新进展"></a>新进展</h3><p>PostgreSQL详细的<a href="http://www.postgresql.org/docs/current/static/mvcc.html" target="_blank" rel="external">发布文档(9.5.1版本)</a>中有提到该问题<br><img src="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/dihcsrup-2.png" alt=""><br>其中13.3.4. DeadLocks中说明了此类问题出现的情况。自行阅读啦，我这英语渣都看懂了。下面是搬运：<br>13.3.4. Deadlocks</p>
@@ -47,7 +135,7 @@
     <link href="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/"/>
     <id>http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/</id>
     <published>2016-02-25T08:19:34.000Z</published>
-    <updated>2016-02-25T10:06:19.676Z</updated>
+    <updated>2016-02-25T10:06:19.000Z</updated>
     <content type="html"><![CDATA[<p>工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。<br>从数据库层面来讲，最典型的就是<strong>悲观锁</strong>和<strong>乐观锁了</strong></p>
 <h3 id="u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09"><a href="#u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09" class="headerlink" title="悲观锁（Pessimisttic Locking）"></a>悲观锁（Pessimisttic Locking）</h3><p>悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，也无法保证外部系统不会修改数据）。<br><code>select * from table where column = “test” for update</code>这句sql锁定了table表中所有column为test的数据。本次事务提交之前，外界无法修改这些数据。<br>数据锁定时，其他线程或事务进行更新操作时，会等待锁释放后才能获取到数据。<strong>不加锁的查询</strong>操作不影响。</p>
 <p><img src="/2016/02/25/high-concurrency-db-lock/hcdl-1.png" alt=""><br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-2.png" alt=""></p>
@@ -73,7 +161,7 @@
     <link href="http://bensonzc.github.io/2016/02/23/hibernate-initialize/"/>
     <id>http://bensonzc.github.io/2016/02/23/hibernate-initialize/</id>
     <published>2016-02-23T08:24:52.000Z</published>
-    <updated>2016-02-23T08:33:28.139Z</updated>
+    <updated>2016-02-23T08:33:28.000Z</updated>
     <content type="html"><![CDATA[<p>使用hibernate进行持久化时，有时需要动态的改变对象的加载方式。配置中lazy属性是全局控制的。这时候需要Hibernate.initialize()。</p>
 <p>###lazy加载</p>
 <p>当元素lazy属性为true时，load(),get(),find()加载对象时，不会马上产生select。只是产生一个Obj代理类实例。lazy为false时，则会马上执行select来加载对象。</p>
@@ -96,7 +184,7 @@
     <link href="http://bensonzc.github.io/2016/02/14/thread-pool-summary/"/>
     <id>http://bensonzc.github.io/2016/02/14/thread-pool-summary/</id>
     <published>2016-02-14T06:08:32.000Z</published>
-    <updated>2016-02-17T02:03:17.598Z</updated>
+    <updated>2016-02-17T02:03:17.000Z</updated>
     <content type="html"><![CDATA[<p>年假前，闲来无事。对线程池的理解不是很系统，就索性稍微整理了下。</p>
 <h2 id="1-__u7EBF_u7A0B_u6C60_u4F5C_u7528"><a href="#1-__u7EBF_u7A0B_u6C60_u4F5C_u7528" class="headerlink" title="1. 线程池作用"></a>1. 线程池作用</h2><p>线程池作用就是限制系统中执行线程的数量。根据系统的环境情况，可以自动或手动设置线程数量，合理利用资源，达到最佳效果。线程池减少了创建和销毁线程的次数，每个工作线程可以被重复利用，执行多个任务。同时根据系统的承受能力，调整线程池中工作线程的数目。</p>
 <h2 id="2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790"><a href="#2-__u7EBF_u7A0B_u6C60_u7C7B_u89E3_u6790" class="headerlink" title="2. 线程池类解析"></a>2. 线程池类解析</h2><ul>
@@ -148,7 +236,7 @@
     <link href="http://bensonzc.github.io/2016/02/06/2015-summarize/"/>
     <id>http://bensonzc.github.io/2016/02/06/2015-summarize/</id>
     <published>2016-02-06T01:36:52.000Z</published>
-    <updated>2016-02-14T06:40:29.515Z</updated>
+    <updated>2016-02-14T06:40:29.000Z</updated>
     <content type="html"><![CDATA[<p>今天还要上班的朋友们，让我看到你们的双手…..<br>按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？</p>
 <p>2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗乐。不得不承认，学生时代的爱情是最真实的。没有社会物质的介入，只看脸……</p>
 <p>为了婚礼能在年底如期进行，老家的房子装修紧锣密鼓的。本想大展拳脚，最后不了了之。跟父母辈的审美鸿沟实在逾越不过去。不过也算切身的体验了一下装修，也算入了个门。后面为了工作方便，和老婆的小屋装修过程中尽量亲力亲为，拿个纸笔就开始干设计。虽然最后总有些不尽如人意的地方，但是整体大方向还是把握住了。算在装修领域正式入门了，跟同龄的同学同事聊起来，也算半个老司机了，忽悠起来不在话下。也算自成一派，跑各种建材厂挑选各种材料，研究各种家用电器的适用场景。勉强能帮到一些同学朋友。欢迎一起探讨。</p>
@@ -172,7 +260,7 @@
     <link href="http://bensonzc.github.io/2016/02/05/sonar-problem-list/"/>
     <id>http://bensonzc.github.io/2016/02/05/sonar-problem-list/</id>
     <published>2016-02-05T07:15:21.000Z</published>
-    <updated>2016-02-29T08:00:42.615Z</updated>
+    <updated>2016-02-29T08:00:42.000Z</updated>
     <content type="html"><![CDATA[<p><a href="http://www.sonarqube.org/" target="_blank" rel="external">Sonar</a>是一个开源平台，用于管理Java源代码的质量。本章知识介绍Sonar检验代码常出现的几个问题：</p>
 <ul>
 <li><p>安全-直接保存数组：<code>The user-supplied array &#39;xxxx&#39; is stored directly</code><br>例子：</p>
@@ -233,7 +321,7 @@
     <link href="http://bensonzc.github.io/2016/02/05/how-to-deploy-https-project/"/>
     <id>http://bensonzc.github.io/2016/02/05/how-to-deploy-https-project/</id>
     <published>2016-02-05T06:30:50.000Z</published>
-    <updated>2016-02-05T07:14:51.718Z</updated>
+    <updated>2016-02-05T07:14:51.000Z</updated>
     <content type="html"><![CDATA[<p>前段时间接了个外包项目，终端IOS要求请求走https。之前https都是某同事在倒腾，没有学习理解过，查了一些资料自己做点总结。</p>
 <h2 id="1-__u4F55_u4E3Ahttps"><a href="#1-__u4F55_u4E3Ahttps" class="headerlink" title="1. 何为https"></a>1. 何为https</h2><p>高大上的理论解释网上一搜一打，就不做解释了。这里做最简单最通俗的解释：http的安全版本。通过在http下加入SSL层。一般意义上的https就是在服务器上有一个证书，服务端与客户端之间所有通讯都是加密的。客户端向服务端握个手，初始化下SSL层。这时候客户端和服务端就可以愉快的沟通了。这里主要介绍下复杂的SSL握手。</p>
 <h3 id="SSL_u63E1_u624B_uFF08_u5355_u5411_u8BA4_u8BC1_uFF09"><a href="#SSL_u63E1_u624B_uFF08_u5355_u5411_u8BA4_u8BC1_uFF09" class="headerlink" title="SSL握手（单向认证）"></a>SSL握手（单向认证）</h3><ol>

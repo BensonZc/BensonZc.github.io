@@ -4,21 +4,21 @@
   <meta charset="utf-8">
   
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
-  <title>2015总结 | BensonZc&#39;Blog</title>
+  <title>如何提升Web应用的性能 | BensonZc&#39;Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="今天还要上班的朋友们，让我看到你们的双手…..按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？
-2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗">
+  <meta name="description" content="Web应用进入平稳期后，性能变得越来越重要，功能的重要性给则越来越低。产品的响应速度很大程度的决定了产品的生命。整理了下自己能力范围内的优化方案，期待后续的不断完善
+1.利用反向代理服务器如果Web应用运行在一台服务器上，性能问题的解决方案就是硬件的升级。但是硬件是有上限的，Web应用缓慢，是因为服务器一直在不同的任务间切换：与客户端的交互，访问磁盘上的文件，执行业务代码等等。最终内存耗尽，IO等">
 <meta property="og:type" content="article">
-<meta property="og:title" content="2015总结">
-<meta property="og:url" content="http://bensonzc.github.io/2016/02/06/2015-summarize/index.html">
+<meta property="og:title" content="如何提升Web应用的性能">
+<meta property="og:url" content="http://bensonzc.github.io/2016/04/01/how-to-imporve-webapp-performance/index.html">
 <meta property="og:site_name" content="BensonZc'Blog">
-<meta property="og:description" content="今天还要上班的朋友们，让我看到你们的双手…..按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？
-2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗">
-<meta property="og:updated_time" content="2016-02-14T06:40:29.000Z">
+<meta property="og:description" content="Web应用进入平稳期后，性能变得越来越重要，功能的重要性给则越来越低。产品的响应速度很大程度的决定了产品的生命。整理了下自己能力范围内的优化方案，期待后续的不断完善
+1.利用反向代理服务器如果Web应用运行在一台服务器上，性能问题的解决方案就是硬件的升级。但是硬件是有上限的，Web应用缓慢，是因为服务器一直在不同的任务间切换：与客户端的交互，访问磁盘上的文件，执行业务代码等等。最终内存耗尽，IO等">
+<meta property="og:updated_time" content="2016-04-01T08:27:35.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="2015总结">
-<meta name="twitter:description" content="今天还要上班的朋友们，让我看到你们的双手…..按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？
-2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗">
+<meta name="twitter:title" content="如何提升Web应用的性能">
+<meta name="twitter:description" content="Web应用进入平稳期后，性能变得越来越重要，功能的重要性给则越来越低。产品的响应速度很大程度的决定了产品的生命。整理了下自己能力范围内的优化方案，期待后续的不断完善
+1.利用反向代理服务器如果Web应用运行在一台服务器上，性能问题的解决方案就是硬件的升级。但是硬件是有上限的，Web应用缓慢，是因为服务器一直在不同的任务间切换：与客户端的交互，访问磁盘上的文件，执行业务代码等等。最终内存耗尽，IO等">
   
     <link rel="alternative" href="/atom.xml" title="BensonZc&#39;Blog" type="application/atom+xml">
   
@@ -179,11 +179,11 @@
 	</div>
 </nav>
 
-      <div class="body-wrap"><article id="post-2015-summarize" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="post-how-to-imporve-webapp-performance" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/02/06/2015-summarize/" class="article-date">
-  	<time datetime="2016-02-06T01:36:52.000Z" itemprop="datePublished">2016-02-06</time>
+      <a href="/2016/04/01/how-to-imporve-webapp-performance/" class="article-date">
+  	<time datetime="2016-04-01T07:36:44.000Z" itemprop="datePublished">2016-04-01</time>
 </a>
     </div>
   
@@ -196,7 +196,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      2015总结
+      如何提升Web应用的性能
     </h1>
   
 
@@ -205,7 +205,7 @@
       <div class="article-info article-info-post">
         
 	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/生活/">生活</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/随记/">随记</a></li></ul>
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/性能优化/">性能优化</a></li></ul>
 	</div>
 
         
@@ -216,13 +216,26 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>今天还要上班的朋友们，让我看到你们的双手…..<br>按照惯例，今天上半天班。早上肯定没心思干活了。闲来无事就给2015做个总结？</p>
-<p>2015年干了不少事，除了钱，其他方面收获颇丰。最大的收获是一个人的快活变成了两个人的生活——-结婚了。和老婆从大二在一起到毕业2年左右结婚，也算功德圆满。虽然没有小情侣那样的如胶似漆，但是生活本该平淡恬静。偶尔想起大学到毕业到工作到结婚，其中的每件事现在回想起来都会把自己逗乐。不得不承认，学生时代的爱情是最真实的。没有社会物质的介入，只看脸……</p>
-<p>为了婚礼能在年底如期进行，老家的房子装修紧锣密鼓的。本想大展拳脚，最后不了了之。跟父母辈的审美鸿沟实在逾越不过去。不过也算切身的体验了一下装修，也算入了个门。后面为了工作方便，和老婆的小屋装修过程中尽量亲力亲为，拿个纸笔就开始干设计。虽然最后总有些不尽如人意的地方，但是整体大方向还是把握住了。算在装修领域正式入门了，跟同龄的同学同事聊起来，也算半个老司机了，忽悠起来不在话下。也算自成一派，跑各种建材厂挑选各种材料，研究各种家用电器的适用场景。勉强能帮到一些同学朋友。欢迎一起探讨。</p>
-<p>结婚免不了蜜月，因为穷，只能国内游。最后选了台湾，老婆全权负责旅行安排和房间机票订购。先是直飞高雄，入住有吾客栈（是一个从失望，满意，惊喜，到不舍的民宿）当天晚上就直奔瑞丰夜市，我一直觉得旅游就是个吃。一晚上都是烤炸的小吃加古早味红茶。第二天租个小电动车，晃悠在西子湾和旗津岛。晚上到市中心体验了下台湾的自助。第三天拼了个的士到垦丁，本人城市就靠海。所以到垦丁对看海没多大兴趣，但是骑租来的摩托然后被海风吹得噼里啪啦得感觉还是不错的，顺带赞下后壁湖的海鲜，真的是鲜且便宜。折合20RMB的一盘生鱼片，就问你怕不怕？垦丁呆了一天，第三天就高铁到了台北，进城了。陪老婆逛的是纪念馆啊，博物馆啊。台湾给我留下的印象真的是舒服，人民整体素质的确比较高。和老婆约定下次有机会再来。写博文的今天得知台湾6.7级地震？！高雄好像尤其惨重。从台湾旅游回来后，由于本人也是闽南地区。一直跟老婆戏称高雄是我的故乡，只能心里默默祈祷祝安好！灾难退散！</p>
-<p>旅游回来后，就是各种败家，给自己小屋添置各种东西。购买各个部件，尝试了下装机。部了家庭千兆网，搞了家庭NAS。然后就没钱了。后面还想败一堆情怀模型手办。</p>
-<p>随意记录了下一年里留下深刻印象的几件事，文笔太差，其他大大小小的事就不记了，心里想着的是—–怎么还不通知提早下班？</p>
-
+        <p>Web应用进入平稳期后，性能变得越来越重要，功能的重要性给则越来越低。产品的响应速度很大程度的决定了产品的生命。整理了下自己能力范围内的优化方案，期待后续的不断完善</p>
+<h3 id="1-_u5229_u7528_u53CD_u5411_u4EE3_u7406_u670D_u52A1_u5668"><a href="#1-_u5229_u7528_u53CD_u5411_u4EE3_u7406_u670D_u52A1_u5668" class="headerlink" title="1.利用反向代理服务器"></a>1.利用反向代理服务器</h3><p>如果Web应用运行在一台服务器上，性能问题的解决方案就是硬件的升级。但是硬件是有上限的，Web应用缓慢，是因为服务器一直在不同的任务间切换：与客户端的交互，访问磁盘上的文件，执行业务代码等等。最终内存耗尽，IO等待等问题崩溃。<br><strong>增加一个反向代理服务器来分担这些任务</strong>可以有效的提升Web应用的性能。反向代理服务器设置在运行Web应该用的服务器之前，用来处理网络流量。只有这台方向代理服务器直接连接到网络上，它和应用服务器通过内部的局域网或者其他快速的内部网络进行通信。<br>有了反向代理服务器，应用服务器不必再等待客户的响应，而是以最优的速度运行。同时也增加了应用服务器的弹性，如果某台服务器过载或者宕机了，也不会造成系统瘫痪。<br>反向代理服务器也成了很多其他性能提升方法的先决条件：</p>
+<ul>
+<li>负载均衡—-反向代理服务器上运行一个负载均衡器，把流量平均分配给了一堆的应用服务器。在增加应用服务器的时候完全不需要修改应用程序。</li>
+<li>缓存静态文件—-直接请求的文件，比如图片，js，css等代码文件，可以存放在反向代理服务器上，直接返回给客户端，使响应更快，也分担了应用服务器的负载。<br>Nginx就是专门设计做反向代理服务器的。</li>
+</ul>
+<h3 id="2-_u589E_u52A0_u4E00_u4E2A_u8D1F_u8F7D_u5747_u8861_u5668"><a href="#2-_u589E_u52A0_u4E00_u4E2A_u8D1F_u8F7D_u5747_u8861_u5668" class="headerlink" title="2.增加一个负载均衡器"></a>2.增加一个负载均衡器</h3><p>负载局衡器首先需要一个反向代理服务器，它接收网络流量，并把请求转交给另一个服务器。一个窍门就是让负载均衡器支持两台以上的应用服务器，利用一个选择算法在服务器间分配请求。最简单的方法就是轮询，每个新请求发送给列表中的下一台服务器。其它方法包括把请求发送给活动连接数量最少的服务器。<br>负载均衡器可以极大地改善性能，因为它们避免让一台服务器过载，而其它服务器却处于空闲的状态。它们也很容易扩展 Web 服务器的能力，增加相对便宜的服务器并确保它们物尽其用。</p>
+<h3 id="3-__u7F13_u5B58_u9759_u6001_u548C_u52A8_u6001_u5185_u5BB9"><a href="#3-__u7F13_u5B58_u9759_u6001_u548C_u52A8_u6001_u5185_u5BB9" class="headerlink" title="3. 缓存静态和动态内容"></a>3. 缓存静态和动态内容</h3><p>缓存通过更快地向客户端提供内容来改善 Web 应用的性能。<br>有两种类型的缓存需要考虑：</p>
+<ul>
+<li>静态内容的缓存，不经常变化的文件，比如图像文件和代码文件（css，js）可以存在一个服务器上，以便在内存或磁盘上进行快速检索。</li>
+<li>动态内容的缓存，很多Web应用为每个页面请求生成新的HTML，通过简单地将已经生成的HTML保存一小段时间，就可以大幅度减少需要生成页面的总数。</li>
+</ul>
+<h3 id="4-__u538B_u7F29_u6570_u636E"><a href="#4-__u538B_u7F29_u6570_u636E" class="headerlink" title="4. 压缩数据"></a>4. 压缩数据</h3><p>精心设计和高效的压缩标准可以大幅减少文件的大小，文本数据，THML,CSS,JavaScript的代码，压缩这些数据会大大改善Web应用性能的体验，特别是移动客户端。</p>
+<h3 id="5-__u4F18_u5316SSL/TLS"><a href="#5-__u4F18_u5316SSL/TLS" class="headerlink" title="5. 优化SSL/TLS"></a>5. 优化SSL/TLS</h3><p>SSL/TLS被越来越多的网站所采用，它们却在影响网站的性能。有两个原因影响了网站的性能：</p>
+<ul>
+<li>每当打开一个新的连接，最初的握手都需要建立加密密钥。浏览器使用 HTTP/1.x 和服务器建立多条连接，随着服务器的增多，连接会成倍增加。</li>
+<li>服务器上加密数据，客户端解密数据，这些都是持续的开销。</li>
+</ul>
+<p>优化SSL/TLS的机制因应用服务器而有所差别，Nginx使用OpenSSL，运行在标准硬件上，提供类似专用硬件解决方案的性能，减少了SSL/TLS加解密对CPU和时间的消耗。</p>
+<h4 id="u672C_u6587_u601D_u8DEF_u6765_u81EA_u4E8Ehttp_3A//www-kuqin-com/shuoit/20151127/349186-html"><a href="#u672C_u6587_u601D_u8DEF_u6765_u81EA_u4E8Ehttp_3A//www-kuqin-com/shuoit/20151127/349186-html" class="headerlink" title="本文思路来自于http://www.kuqin.com/shuoit/20151127/349186.html"></a>本文思路来自于<a href="http://www.kuqin.com/shuoit/20151127/349186.html" target="_blank" rel="external">http://www.kuqin.com/shuoit/20151127/349186.html</a></h4>
       
     </div>
     
@@ -231,18 +244,9 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/02/14/thread-pool-summary/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption"><</strong>
-      <div class="article-nav-title">
-        
-          java线程池整理
-        
-      </div>
-    </a>
   
-  
-    <a href="/2016/02/05/sonar-problem-list/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">Sonar常见问题整理</div>
+    <a href="/2016/04/01/java-interview-tips/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">面试汇总整理</div>
       <strong class="article-nav-caption">></strong>
     </a>
   
@@ -277,7 +281,7 @@
 
 <div class="duoshuo">
 	<!-- 多说评论框 start -->
-	<div class="ds-thread" data-thread-key="2015-summarize" data-title="2015总结" data-url="http://bensonzc.github.io/2016/02/06/2015-summarize/"></div>
+	<div class="ds-thread" data-thread-key="how-to-imporve-webapp-performance" data-title="如何提升Web应用的性能" data-url="http://bensonzc.github.io/2016/04/01/how-to-imporve-webapp-performance/"></div>
 	<!-- 多说评论框 end -->
 	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 	<script type="text/javascript">

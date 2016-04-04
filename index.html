@@ -69,10 +69,10 @@
 					<div class="tips-arrow"></div>
 					<ul class="tips-inner">
 						<li>菜单</li>
-						<li>Tags</li>
+						<li>标签</li>
 						
 						
-						<li>Über</li>
+						<li>关于我</li>
 						
 					</ul>
 				</div>
@@ -109,7 +109,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/性能优化/" style="font-size: 10px;">性能优化</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
 					</div>
 				</section>
 				
@@ -176,6 +176,174 @@
 </nav>
 
       <div class="body-wrap">
+  
+    <article id="post-how-to-imporve-webapp-performance" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/04/01/how-to-imporve-webapp-performance/" class="article-date">
+  	<time datetime="2016-04-01T07:36:44.000Z" itemprop="datePublished">2016-04-01</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/04/01/how-to-imporve-webapp-performance/">如何提升Web应用的性能</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Web应用进入平稳期后，性能变得越来越重要，功能的重要性给则越来越低。产品的响应速度很大程度的决定了产品的生命。整理了下自己能力范围内的优化方案，期待后续的不断完善</p>
+<h3 id="1-_u5229_u7528_u53CD_u5411_u4EE3_u7406_u670D_u52A1_u5668"><a href="#1-_u5229_u7528_u53CD_u5411_u4EE3_u7406_u670D_u52A1_u5668" class="headerlink" title="1.利用反向代理服务器"></a>1.利用反向代理服务器</h3><p>如果Web应用运行在一台服务器上，性能问题的解决方案就是硬件的升级。但是硬件是有上限的，Web应用缓慢，是因为服务器一直在不同的任务间切换：与客户端的交互，访问磁盘上的文件，执行业务代码等等。最终内存耗尽，IO等待等问题崩溃。<br><strong>增加一个反向代理服务器来分担这些任务</strong>可以有效的提升Web应用的性能。反向代理服务器设置在运行Web应该用的服务器之前，用来处理网络流量。只有这台方向代理服务器直接连接到网络上，它和应用服务器通过内部的局域网或者其他快速的内部网络进行通信。<br>有了反向代理服务器，应用服务器不必再等待客户的响应，而是以最优的速度运行。同时也增加了应用服务器的弹性，如果某台服务器过载或者宕机了，也不会造成系统瘫痪。<br>反向代理服务器也成了很多其他性能提升方法的先决条件：</p>
+<ul>
+<li>负载均衡—-反向代理服务器上运行一个负载均衡器，把流量平均分配给了一堆的应用服务器。在增加应用服务器的时候完全不需要修改应用程序。</li>
+<li>缓存静态文件—-直接请求的文件，比如图片，js，css等代码文件，可以存放在反向代理服务器上，直接返回给客户端，使响应更快，也分担了应用服务器的负载。<br>Nginx就是专门设计做反向代理服务器的。</li>
+</ul>
+<h3 id="2-_u589E_u52A0_u4E00_u4E2A_u8D1F_u8F7D_u5747_u8861_u5668"><a href="#2-_u589E_u52A0_u4E00_u4E2A_u8D1F_u8F7D_u5747_u8861_u5668" class="headerlink" title="2.增加一个负载均衡器"></a>2.增加一个负载均衡器</h3><p>负载局衡器首先需要一个反向代理服务器，它接收网络流量，并把请求转交给另一个服务器。一个窍门就是让负载均衡器支持两台以上的应用服务器，利用一个选择算法在服务器间分配请求。最简单的方法就是轮询，每个新请求发送给列表中的下一台服务器。其它方法包括把请求发送给活动连接数量最少的服务器。<br>负载均衡器可以极大地改善性能，因为它们避免让一台服务器过载，而其它服务器却处于空闲的状态。它们也很容易扩展 Web 服务器的能力，增加相对便宜的服务器并确保它们物尽其用。</p>
+<h3 id="3-__u7F13_u5B58_u9759_u6001_u548C_u52A8_u6001_u5185_u5BB9"><a href="#3-__u7F13_u5B58_u9759_u6001_u548C_u52A8_u6001_u5185_u5BB9" class="headerlink" title="3. 缓存静态和动态内容"></a>3. 缓存静态和动态内容</h3><p>缓存通过更快地向客户端提供内容来改善 Web 应用的性能。<br>有两种类型的缓存需要考虑：</p>
+<ul>
+<li>静态内容的缓存，不经常变化的文件，比如图像文件和代码文件（css，js）可以存在一个服务器上，以便在内存或磁盘上进行快速检索。</li>
+<li>动态内容的缓存，很多Web应用为每个页面请求生成新的HTML，通过简单地将已经生成的HTML保存一小段时间，就可以大幅度减少需要生成页面的总数。</li>
+</ul>
+<h3 id="4-__u538B_u7F29_u6570_u636E"><a href="#4-__u538B_u7F29_u6570_u636E" class="headerlink" title="4. 压缩数据"></a>4. 压缩数据</h3><p>精心设计和高效的压缩标准可以大幅减少文件的大小，文本数据，THML,CSS,JavaScript的代码，压缩这些数据会大大改善Web应用性能的体验，特别是移动客户端。</p>
+<h3 id="5-__u4F18_u5316SSL/TLS"><a href="#5-__u4F18_u5316SSL/TLS" class="headerlink" title="5. 优化SSL/TLS"></a>5. 优化SSL/TLS</h3><p>SSL/TLS被越来越多的网站所采用，它们却在影响网站的性能。有两个原因影响了网站的性能：</p>
+<ul>
+<li>每当打开一个新的连接，最初的握手都需要建立加密密钥。浏览器使用 HTTP/1.x 和服务器建立多条连接，随着服务器的增多，连接会成倍增加。</li>
+<li>服务器上加密数据，客户端解密数据，这些都是持续的开销。</li>
+</ul>
+<p>优化SSL/TLS的机制因应用服务器而有所差别，Nginx使用OpenSSL，运行在标准硬件上，提供类似专用硬件解决方案的性能，减少了SSL/TLS加解密对CPU和时间的消耗。</p>
+<h4 id="u672C_u6587_u601D_u8DEF_u6765_u81EA_u4E8Ehttp_3A//www-kuqin-com/shuoit/20151127/349186-html"><a href="#u672C_u6587_u601D_u8DEF_u6765_u81EA_u4E8Ehttp_3A//www-kuqin-com/shuoit/20151127/349186-html" class="headerlink" title="本文思路来自于http://www.kuqin.com/shuoit/20151127/349186.html"></a>本文思路来自于<a href="http://www.kuqin.com/shuoit/20151127/349186.html" target="_blank" rel="external">http://www.kuqin.com/shuoit/20151127/349186.html</a></h4>
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/性能优化/">性能优化</a></li></ul>
+	</div>
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
+  
+    <article id="post-java-interview-tips" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/04/01/java-interview-tips/" class="article-date">
+  	<time datetime="2016-04-01T01:33:30.000Z" itemprop="datePublished">2016-04-01</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/04/01/java-interview-tips/">面试汇总整理</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>这辈子肯定要面试很多次，就整理了下一些面试题的集合。包括Java，数据库等</p>
+<h2 id="1-_Java_u7BC7"><a href="#1-_Java_u7BC7" class="headerlink" title="1. Java篇"></a>1. Java篇</h2><p><strong>1. Java的HashMap和HashTable</strong><br>两个都是Map接口的子接口。HashMap允许NULL key和NULL value，而HashTable不允许。HashTable是线程安全的，而HashMap不是。</p>
+<p><strong>2. Java BlockingQuene是什么？</strong><br>Java BlockingQuene是一个并发集合util包中的一部分。BlockingQuene队列支持在队列为空时，获取元素的线程会等待队列变为非空。当队列满时，存储元素的线程会等待队列可用。常用于生产者-消费者模式中。多线程间信息传递尤其有用。</p>
+<p><strong>3. 什么时候使用ConcurrentHashMap？</strong><br>当有大量并发更新的时候，适合使用ConcurrentHashMap。与HashTable类似。但是ConcurrentHashMap不锁定整张表来提供并发，所以ConcurrentHashMap性能更好。</p>
+<p><strong>4. LinkedList和ArrayList</strong><br>ArrayList基于动态数组的数据结构，当操作是在一列数据的后面添加数据而不是在前面或中间,并且需要随机地访问其中的元素时,使用ArrayList会提供比较好的性能；。LinkedList基于链表的数据接口，当你的操作是在一列数据的前面或中间添加或删除数据,并且按照顺序访问其中的元素时,就应该使用LinkedList了。</p>
+<p><strong>5. Iterator和ListIterator区别</strong></p>
+<ul>
+<li>ListIterator有add()方法，可以向List添加元素，而Iterator不能。</li>
+<li>ListIterator可以实现顺序向前的遍历。而Iterator只能顺序向后的遍历。</li>
+<li>ListIterator可以实现对象修改（set()方法）。Iterator仅能遍历，不能修改。两者皆可删除对象。</li>
+</ul>
+<p><strong>6. HashMap如何同步？</strong></p>
+<ul>
+<li>使用Collections.synchronizedMap(…)来同步HashMap</li>
+<li>使用ConcurrentHashMap。<br>优先使用ConcurrentHashMap，因为这样就不需要锁定整个对象来获得锁。</li>
+</ul>
+<p><strong>7. Overload和Override的区别？Overload是否可以改变返回值类型？</strong><br>Overridingg（重写）和Overloading（重载）是Java多态性的不同表现，重写是父类与子类之间的多态，重载是一个类中的多态。子类定义了某个方法与父类有相同的名称和参数。说明该方法被重写了。如果在一个类中定义了多个同名方法，它们有不同的参数个数和参数类型，则称之为重载，重载可以改变返回值类型。</p>
+<p><strong>8. final，finally，finialize的区别</strong></p>
+<ul>
+<li>final修饰符，如果一个类被声明成final，说明它不能派生出新的子类，不能作为父类被继承。将变量或方法声明成final，可以保证它们在使用过程中不被改变。被声明成final的方法只能使用，不能Override，可以被Overload</li>
+<li>finally在异常处理中的一个块，来执行任何清除释放操作。无论是否抛出异常，程序都会进入finally块。</li>
+<li>finalize时候方法名，这个方法由垃圾收集器在确定这个对象没有被引用时对这个对象调用的。内存释放清理的操作。</li>
+</ul>
+<p><strong>9. Java创建线程的方式？</strong></p>
+<ul>
+<li>继承Thread类，重写run方法，start()启动线程。</li>
+<li>实现Runnable接口，实现run方法，装载入Thread中start()启动线程。</li>
+<li>使用Executor来创建线程池，通过execute启动线程。</li>
+</ul>
+<p><strong>10. Java集合类</strong></p>
+<ul>
+<li>Collection:一组对象，每个对象都是它的子元素。</li>
+<li>Set:不包含重复元素的Collection。</li>
+<li>List:有顺序的Collection，可以包含重复元素。</li>
+<li>Map:键(key)映射值(value)的对象，键不能重复。</li>
+</ul>
+<p><strong>11. Enumeration接口和Iterator接口区别</strong><br>Enumeration速度是Iterator的两倍，同时占用更少的内存，只提供遍历Vector和HashTable类型集合元素的功能。Iterator远比Enumeration安全，因为其他线程不能够修改正在被Iterator遍历的集合里面的对象。</p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+	</div>
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
   
     <article id="post-deadlock-in-high-concurrency-single-row-update-postgresql" class="article article-type-post" itemscope itemprop="blogPost">
   
