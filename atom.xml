@@ -54,7 +54,7 @@
     <link href="http://bensonzc.github.io/2016/04/01/java-interview-tips/"/>
     <id>http://bensonzc.github.io/2016/04/01/java-interview-tips/</id>
     <published>2016-04-01T01:33:30.000Z</published>
-    <updated>2016-04-01T07:32:24.000Z</updated>
+    <updated>2016-04-05T07:36:39.000Z</updated>
     <content type="html"><![CDATA[<p>这辈子肯定要面试很多次，就整理了下一些面试题的集合。包括Java，数据库等</p>
 <h2 id="1-_Java_u7BC7"><a href="#1-_Java_u7BC7" class="headerlink" title="1. Java篇"></a>1. Java篇</h2><p><strong>1. Java的HashMap和HashTable</strong><br>两个都是Map接口的子接口。HashMap允许NULL key和NULL value，而HashTable不允许。HashTable是线程安全的，而HashMap不是。</p>
 <p><strong>2. Java BlockingQuene是什么？</strong><br>Java BlockingQuene是一个并发集合util包中的一部分。BlockingQuene队列支持在队列为空时，获取元素的线程会等待队列变为非空。当队列满时，存储元素的线程会等待队列可用。常用于生产者-消费者模式中。多线程间信息传递尤其有用。</p>
@@ -92,6 +92,22 @@
 <li>Map:键(key)映射值(value)的对象，键不能重复。</li>
 </ul>
 <p><strong>11. Enumeration接口和Iterator接口区别</strong><br>Enumeration速度是Iterator的两倍，同时占用更少的内存，只提供遍历Vector和HashTable类型集合元素的功能。Iterator远比Enumeration安全，因为其他线程不能够修改正在被Iterator遍历的集合里面的对象。</p>
+<h2 id="2-__u6570_u636E_u5E93_u7BC7"><a href="#2-__u6570_u636E_u5E93_u7BC7" class="headerlink" title="2. 数据库篇"></a>2. 数据库篇</h2><p><strong>1. 数据库引擎MYISAM、INNODB</strong></p>
+<ul>
+<li>MyISAM不支持事务处理等高级处理，而InnoDB类型支持。</li>
+<li>MyISAM的表强调的是性能，执行速度比InnoDB更快。</li>
+<li>MyISAM的重要缺陷是不能再表损坏后恢复数据。</li>
+<li>InnoDB中不保存表的具体行数，也就是说，执行select count(<em>) from table时，InnoDB要扫描一遍整个表来计算有多少行，但是MyISAM只要简单的读出保存好的行数即可。注意的是，当count(</em>)语句包含where条件时，两种表的操作是一样的</li>
+<li>MyISAM的索引和数据是分开的，并且索引是有压缩的，内存使用率就对应提高了不少。能加载更多索引，而Innodb是索引和数据是紧密捆绑的，没有使用压缩从而会造成Innodb比MyISAM体积庞大</li>
+</ul>
+<p><strong>2. 数据库优化</strong></p>
+<ul>
+<li>减少数据访问（创建并使用正确的索引，设计适当的冗余）</li>
+<li>返回更少数据（数据分页，只返回需要的字段）</li>
+<li>减少交互次数（批量操作）</li>
+<li>减少服务器CPU开销</li>
+<li>利用更多资源</li>
+</ul>
 ]]></content>
     <summary type="html">
     <![CDATA[<p>这辈子肯定要面试很多次，就整理了下一些面试题的集合。包括Java，数据库等</p>
