@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" >
+  <title>在一个千万级的数据库查询中，如何提高查询效率 | BensonZc&#39;Blog</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="1.数据库设计方面：
+对查询进行优化，应尽量避免全表扫描，首先应考虑在where及order by涉及的列上建立索引。
+应尽量避免在where子句中对字段进行null值判断，否则将导致引擎放弃使用索引而进行全表扫描，如select id from table where column is null可以在column设置默认值0，确保表中column中没有null值，然后这样查询:select i">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在一个千万级的数据库查询中，如何提高查询效率">
+<meta property="og:url" content="http://bensonzc.github.io/2016/04/18/how-to-improve-database-query-efficiency/index.html">
+<meta property="og:site_name" content="BensonZc'Blog">
+<meta property="og:description" content="1.数据库设计方面：
+对查询进行优化，应尽量避免全表扫描，首先应考虑在where及order by涉及的列上建立索引。
+应尽量避免在where子句中对字段进行null值判断，否则将导致引擎放弃使用索引而进行全表扫描，如select id from table where column is null可以在column设置默认值0，确保表中column中没有null值，然后这样查询:select i">
+<meta property="og:image" content="http://www.kuqin.com/shuoit/20160226/350862.html">
+<meta property="og:updated_time" content="2016-04-18T13:16:42.122Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在一个千万级的数据库查询中，如何提高查询效率">
+<meta name="twitter:description" content="1.数据库设计方面：
+对查询进行优化，应尽量避免全表扫描，首先应考虑在where及order by涉及的列上建立索引。
+应尽量避免在where子句中对字段进行null值判断，否则将导致引擎放弃使用索引而进行全表扫描，如select id from table where column is null可以在column设置默认值0，确保表中column中没有null值，然后这样查询:select i">
+  
+    <link rel="alternative" href="/atom.xml" title="BensonZc&#39;Blog" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  <link rel="stylesheet" href="/css/style.css" type="text/css">
+</head>
+
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+	<header id="header" class="inner">
+		<a href="/" class="profilepic">
+			
+			<img lazy-src="/img/avatar.JPG" class="js-avatar">
+			
+		</a>
+
+		<hgroup>
+		  <h1 class="header-author"><a href="/">BensonZc</a></h1>
+		</hgroup>
+
+		
+		<p class="header-subtitle">拥有满满的情怀和数码周边的码农</p>
+		
+
+		
+			<div class="switch-btn">
+				<div class="icon">
+					<div class="icon-ctn">
+						<div class="icon-wrap icon-house" data-idx="0">
+							<div class="birdhouse"></div>
+							<div class="birdhouse_holes"></div>
+						</div>
+						<div class="icon-wrap icon-ribbon hide" data-idx="1">
+							<div class="ribbon"></div>
+						</div>
+						
+						
+						<div class="icon-wrap icon-me hide" data-idx="3">
+							<div class="user"></div>
+							<div class="shoulder"></div>
+						</div>
+						
+					</div>
+					
+				</div>
+				<div class="tips-box hide">
+					<div class="tips-arrow"></div>
+					<ul class="tips-inner">
+						<li>Menu</li>
+						<li>Tags</li>
+						
+						
+						<li>About</li>
+						
+					</ul>
+				</div>
+			</div>
+		
+
+		<div class="switch-area">
+			<div class="switch-wrap">
+				<section class="switch-part switch-part1">
+					<nav class="header-menu">
+						<ul>
+						
+							<li><a href="/">主页</a></li>
+				        
+							<li><a href="/archives">所有文章</a></li>
+				        
+							<li><a href="/tags/生活">随笔</a></li>
+				        
+						</ul>
+					</nav>
+					<nav class="header-nav">
+						<div class="social">
+							
+								<a class="github" target="_blank" href="https://github.com/BensonZc" title="github">github</a>
+					        
+								<a class="weibo" target="_blank" href="http://weibo.com/u/2801766190?nick=%E5%BC%A0%E6%99%A8andLike&is_all=1" title="weibo">weibo</a>
+					        
+								<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+					        
+						</div>
+					</nav>
+				</section>
+				
+				
+				<section class="switch-part switch-part2">
+					<div class="widget tagcloud" id="js-tagcloud">
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/sql/" style="font-size: 10px;">sql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/性能优化/" style="font-size: 15px;">性能优化</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
+					</div>
+				</section>
+				
+				
+				
+
+				
+				
+				<section class="switch-part switch-part3">
+				
+					<div id="js-aboutme">厦门大学09级，“业余”服务端码农（Java）一枚。沉浸于情怀的轻度败家患者。</div>
+				</section>
+				
+			</div>
+		</div>
+	</header>				
+</div>
+
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+  	<div class="overlay">
+  		<div class="slider-trigger"></div>
+  		<h1 class="header-author js-mobile-header hide">BensonZc</h1>
+  	</div>
+	<div class="intrude-less">
+		<header id="header" class="inner">
+			<div class="profilepic">
+			
+				<img lazy-src="/img/avatar.JPG" class="js-avatar">
+			
+			</div>
+			<hgroup>
+			  <h1 class="header-author">BensonZc</h1>
+			</hgroup>
+			
+			<p class="header-subtitle">拥有满满的情怀和数码周边的码农</p>
+			
+			<nav class="header-menu">
+				<ul>
+				
+					<li><a href="/">主页</a></li>
+		        
+					<li><a href="/archives">所有文章</a></li>
+		        
+					<li><a href="/tags/生活">随笔</a></li>
+		        
+		        <div class="clearfix"></div>
+				</ul>
+			</nav>
+			<nav class="header-nav">
+				<div class="social">
+					
+						<a class="github" target="_blank" href="https://github.com/BensonZc" title="github">github</a>
+			        
+						<a class="weibo" target="_blank" href="http://weibo.com/u/2801766190?nick=%E5%BC%A0%E6%99%A8andLike&is_all=1" title="weibo">weibo</a>
+			        
+						<a class="rss" target="_blank" href="/atom.xml" title="rss">rss</a>
+			        
+				</div>
+			</nav>
+		</header>				
+	</div>
+</nav>
+
+      <div class="body-wrap"><article id="post-how-to-improve-database-query-efficiency" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/04/18/how-to-improve-database-query-efficiency/" class="article-date">
+  	<time datetime="2016-04-18T07:28:45.000Z" itemprop="datePublished">2016-04-18</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      在一个千万级的数据库查询中，如何提高查询效率
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/性能优化/">性能优化</a></li></ul>
+	</div>
+
+        
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="1-_u6570_u636E_u5E93_u8BBE_u8BA1_u65B9_u9762_uFF1A"><a href="#1-_u6570_u636E_u5E93_u8BBE_u8BA1_u65B9_u9762_uFF1A" class="headerlink" title="1.数据库设计方面："></a>1.数据库设计方面：</h3><ul>
+<li>对查询进行优化，应尽量避免全表扫描，首先应考虑在<code>where</code>及<code>order by</code>涉及的列上建立索引。</li>
+<li>应尽量避免在<code>where</code>子句中对字段进行null值判断，否则将导致引擎放弃使用索引而进行全表扫描，如<code>select id from table where column is null</code>可以在column设置默认值0，确保表中column中没有null值，然后这样查询:<code>select id from table where column = 0</code>。</li>
+<li>并不是所有索引对查询都有效，SQL是根据表中数据来进行查询优化的，当索引列有大量数据重复时，查询可能不会去利用索引，如表中有字段sex，male，female（性别）几乎各占一半，那么即使在该列上建立索引也对查询效率起不了作用。</li>
+<li>索引并不是越多越好，索引固然可以提高相应的<code>select</code>的效率，但同时也降低了<code>insert</code>及<code>update</code>的效率，因为<code>insert</code>或<code>update</code>时有肯恩过会重建索引，所以怎样建索引需要慎重考虑，视具体情况而定。一个表的索引数最好不要超过6个，若太多则应考虑一些不常使用到的列上建的索引是否有必要。</li>
+<li>尽量使用数字型字段，若只包含数值信息的字段尽量不要设计为字符型，这会降低查询和连接的性能，并会增加存储开销。这是因为引擎在处理查询和连接时会逐个比较字符串中每一个字符，而对于数字型而言只需要比较一次就够了。</li>
+<li>尽可能的使用<code>varchar</code>/<code>nvarchar</code>代替<code>char</code>/<code>nchar</code>，因为首先变长字段存储空间小，可以节省存储空间，其次对于查询来说，在一个相对较小的字段内搜索效率显然要高些。</li>
+<li>尽量使用表变量来代替临时表。如果表变量包含大量数据，请注意索引非常有限（只有主键索引）。</li>
+<li>避免频繁创建和删除临时表，以减少系统表资源的消耗。</li>
+<li>临时表并不是不可使用，适当地使用它们可以使某些例程更有效，例如，当需要重复引用大型表或常用表中的某个数据集时，但是，对于一次性事件，最好使用导出表。</li>
+<li>在新建临时表时，如果一次性插入数据量会很大，那么可以使用<code>select into</code>代替<code>create table</code>，避免造成大量log，以提高速度；如果数据量不大，为了缓和系统表的资源，应<code>create table</code>，然后<code>insert</code></li>
+<li>如果使用到了临时表，在存储过程的最后务必将所有的临时表显示删除，先<code>truncate table</code>，然后<code>drop table</code>，这样可以避免系统表的较长时间锁定。</li>
+</ul>
+<h3 id="2-SQL_u8BED_u53E5_u65B9_u9762_uFF1A"><a href="#2-SQL_u8BED_u53E5_u65B9_u9762_uFF1A" class="headerlink" title="2.SQL语句方面："></a>2.SQL语句方面：</h3><ul>
+<li>应尽量避免在<code>where</code>子句中使用<code>!=</code>或<code>&lt;&gt;</code>操作符，否则将引擎放弃使用索引而进行全表扫描。</li>
+<li>应尽量避免在<code>where</code>子句中使用<code>or</code>来连接条件，否则将导致引擎放弃使用索引而进行全表扫描，如：<code>select id from table where column = 10 or column = 20</code>可以这样查询：<code>select id from table where column = 10 union all select id from table where column = 20</code>。</li>
+<li><code>in</code>和<code>not in</code>也要慎用，否则会导致全表扫描，如：<code>select id from table where column in (1,2,3)</code>对于连续的数值，能用<code>between</code>就不要用<code>in</code>了：<code>select id from table where column between 1 and 3</code>。</li>
+<li>下面的查询也将导致全表扫描：<code>select id from table where name like &#39;%abc%&#39;</code>。</li>
+<li>如果在<code>where</code>子句中使用参数，也会导致全表扫描。因为SQL只有在运行时才会解析局部变量，但优化程序不能将访问计划的选择推迟到运行时；它必须在编译时进行选择。然后，如果在编译时简历访问计划，变量的值还是未知，因而无法作为索引选择的输入项。如果下面语句将进行全表扫描：<code>select id from table where column = @column</code>可以改为强制查询使用索引：<code>select id from table with(index(索引名)) where column = @column</code>。</li>
+<li>应尽量避免在<code>where</code>子句中对字段进行表达式操作，这将导致引擎放弃使用索引而进行全表扫描。如：<code>select id from table where column/2 = 100</code>应改为：<code>select id from table where column = 100*2</code>。</li>
+<li>应尽量避免在<code>where</code>子句中对字段进行函数操作，这将导致引擎放弃使用索引而进行全表扫描。如：<code>select id from table where substring(name, 1, 3) = &#39;abc&#39;</code>应该改为<code>select id from table where name like &#39;abc%&#39;</code>。</li>
+<li>不要在<code>where</code>子句中的<code>=</code>左边进行函数、算术运算或其他表达式运算，否则系统将可能无法正确使用索引。</li>
+<li>不要写一些没有意义的查询。</li>
+<li>很多时候使用exists代替in是一个好的选择：<code>select id from table1 where id in (select id from table2)</code>用下面的语句替换：<code>select id from table1 where exists(select 1 from table2 where id = table1.id)</code>。</li>
+<li>任何地方都不要使用<code>select * from table</code>，用具体的字段列表代替<code>*</code>，不要返回用不到的任何字段。</li>
+<li>尽量避免使用游标，因为游标效率较差，如果游标操作的数据超过1万行，那么就应该考虑改写。</li>
+<li>尽量避免向客户端返回大数据量，若数据量过大，应该考虑相应需求是否合理。</li>
+<li>尽量避免大事务2操作，提高系统并发能力。</li>
+</ul>
+<h3 id="3-java_u65B9_u9762_uFF1A"><a href="#3-java_u65B9_u9762_uFF1A" class="headerlink" title="3.java方面："></a>3.java方面：</h3><ul>
+<li>尽可能的少造对象。</li>
+<li>合理摆正系统设计的位置。大量数据操作，和少量数据操作一定是分开的。大量的数据操作，肯定不是ORM框架搞定的。</li>
+<li>使用JDBC连接数据库操作数据</li>
+<li>控制好内存，让数据流起来，而不是全部读取到内存再处理，而是边读取边处理。</li>
+<li>合理利用内存，有的数据要缓存。</li>
+</ul>
+<p><img src="http://www.kuqin.com/shuoit/20160226/350862.html" alt="来源http://www.kuqin.com/shuoit/20160226/350862.html"></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2016/04/01/how-to-imporve-webapp-performance/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">如何提升Web应用的性能</div>
+      <strong class="article-nav-caption">></strong>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+<div class="share_jia">
+	<!-- JiaThis Button BEGIN -->
+	<div class="jiathis_style">
+		<span class="jiathis_txt">Share to: &nbsp; </span>
+		<!-- <a class="jiathis_button_facebook"></a>  -->
+		<!-- <a class="jiathis_button_twitter"></a> -->
+		<a class="jiathis_button_plus"></a> 
+		<a class="jiathis_button_tsina"></a>
+		<a class="jiathis_button_cqq"></a>
+		<a class="jiathis_button_douban"></a>
+		<a class="jiathis_button_weixin"></a>
+		<!-- <a class="jiathis_button_tumblr"></a> -->
+    <a href="http://www.jiathis.com/share" class="jiathis jiathis_txt jtico jtico_jiathis" target="_blank"></a>
+	</div>
+	<script type="text/javascript" src="http://v3.jiathis.com/code/jia.js?uid=1405949716054953" charset="utf-8"></script>
+	<!-- JiaThis Button END -->
+</div>
+
+
+
+
+
+
+<div class="duoshuo">
+	<!-- 多说评论框 start -->
+	<div class="ds-thread" data-thread-key="how-to-improve-database-query-efficiency" data-title="在一个千万级的数据库查询中，如何提高查询效率" data-url="http://bensonzc.github.io/2016/04/18/how-to-improve-database-query-efficiency/"></div>
+	<!-- 多说评论框 end -->
+	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
+	<script type="text/javascript">
+	var duoshuoQuery = {short_name:"bensonzc"};
+	(function() {
+		var ds = document.createElement('script');
+		ds.type = 'text/javascript';ds.async = true;
+		ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+		ds.charset = 'UTF-8';
+		(document.getElementsByTagName('head')[0] 
+		 || document.getElementsByTagName('body')[0]).appendChild(ds);
+	})();
+	</script>
+	<!-- 多说公共JS代码 end -->
+</div>
+
+
+
+
+</div>
+      <footer id="footer">
+  <div class="outer">
+    <div id="footer-info">
+    	<div class="footer-left">
+    		&copy; 2016 BensonZc
+    	</div>
+      	<div class="footer-right">
+      		<a href="http://hexo.io/" target="_blank">Hexo</a>  Theme <a href="https://github.com/litten/hexo-theme-yilia" target="_blank">Yilia</a> by Litten
+      	</div>
+    </div>
+  </div>
+</footer>
+    </div>
+    
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css" type="text/css">
+
+
+<script>
+	var yiliaConfig = {
+		fancybox: true,
+		mathjax: true,
+		animate: true,
+		isHome: false,
+		isPost: true,
+		isArchive: false,
+		isTag: false,
+		isCategory: false,
+		open_in_new: false
+	}
+</script>
+<script src="http://7.url.cn/edu/jslib/comb/require-2.1.6,jquery-1.9.1.min.js" type="text/javascript"></script>
+<script src="/js/main.js" type="text/javascript"></script>
+
+
+
+
+
+
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+    tex2jax: {
+        inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+        processEscapes: true,
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    }
+});
+
+MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+        all[i].SourceElement().parentNode.className += ' has-jax';                 
+    }       
+});
+</script>
+
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+
+
+  </div>
+</body>
+</html>

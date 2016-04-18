@@ -68,11 +68,11 @@
 				<div class="tips-box hide">
 					<div class="tips-arrow"></div>
 					<ul class="tips-inner">
-						<li>菜单</li>
-						<li>标签</li>
+						<li>Menu</li>
+						<li>Tags</li>
 						
 						
-						<li>关于我</li>
+						<li>About</li>
 						
 					</ul>
 				</div>
@@ -109,7 +109,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/性能优化/" style="font-size: 10px;">性能优化</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/sql/" style="font-size: 10px;">sql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/性能优化/" style="font-size: 15px;">性能优化</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
 					</div>
 				</section>
 				
@@ -176,6 +176,99 @@
 </nav>
 
       <div class="body-wrap">
+  
+    <article id="post-how-to-improve-database-query-efficiency" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2016/04/18/how-to-improve-database-query-efficiency/" class="article-date">
+  	<time datetime="2016-04-18T07:28:45.000Z" itemprop="datePublished">2016-04-18</time>
+</a>
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2016/04/18/how-to-improve-database-query-efficiency/">在一个千万级的数据库查询中，如何提高查询效率</a>
+    </h1>
+  
+
+      </header>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h3 id="1-_u6570_u636E_u5E93_u8BBE_u8BA1_u65B9_u9762_uFF1A"><a href="#1-_u6570_u636E_u5E93_u8BBE_u8BA1_u65B9_u9762_uFF1A" class="headerlink" title="1.数据库设计方面："></a>1.数据库设计方面：</h3><ul>
+<li>对查询进行优化，应尽量避免全表扫描，首先应考虑在<code>where</code>及<code>order by</code>涉及的列上建立索引。</li>
+<li>应尽量避免在<code>where</code>子句中对字段进行null值判断，否则将导致引擎放弃使用索引而进行全表扫描，如<code>select id from table where column is null</code>可以在column设置默认值0，确保表中column中没有null值，然后这样查询:<code>select id from table where column = 0</code>。</li>
+<li>并不是所有索引对查询都有效，SQL是根据表中数据来进行查询优化的，当索引列有大量数据重复时，查询可能不会去利用索引，如表中有字段sex，male，female（性别）几乎各占一半，那么即使在该列上建立索引也对查询效率起不了作用。</li>
+<li>索引并不是越多越好，索引固然可以提高相应的<code>select</code>的效率，但同时也降低了<code>insert</code>及<code>update</code>的效率，因为<code>insert</code>或<code>update</code>时有肯恩过会重建索引，所以怎样建索引需要慎重考虑，视具体情况而定。一个表的索引数最好不要超过6个，若太多则应考虑一些不常使用到的列上建的索引是否有必要。</li>
+<li>尽量使用数字型字段，若只包含数值信息的字段尽量不要设计为字符型，这会降低查询和连接的性能，并会增加存储开销。这是因为引擎在处理查询和连接时会逐个比较字符串中每一个字符，而对于数字型而言只需要比较一次就够了。</li>
+<li>尽可能的使用<code>varchar</code>/<code>nvarchar</code>代替<code>char</code>/<code>nchar</code>，因为首先变长字段存储空间小，可以节省存储空间，其次对于查询来说，在一个相对较小的字段内搜索效率显然要高些。</li>
+<li>尽量使用表变量来代替临时表。如果表变量包含大量数据，请注意索引非常有限（只有主键索引）。</li>
+<li>避免频繁创建和删除临时表，以减少系统表资源的消耗。</li>
+<li>临时表并不是不可使用，适当地使用它们可以使某些例程更有效，例如，当需要重复引用大型表或常用表中的某个数据集时，但是，对于一次性事件，最好使用导出表。</li>
+<li>在新建临时表时，如果一次性插入数据量会很大，那么可以使用<code>select into</code>代替<code>create table</code>，避免造成大量log，以提高速度；如果数据量不大，为了缓和系统表的资源，应<code>create table</code>，然后<code>insert</code></li>
+<li>如果使用到了临时表，在存储过程的最后务必将所有的临时表显示删除，先<code>truncate table</code>，然后<code>drop table</code>，这样可以避免系统表的较长时间锁定。</li>
+</ul>
+<h3 id="2-SQL_u8BED_u53E5_u65B9_u9762_uFF1A"><a href="#2-SQL_u8BED_u53E5_u65B9_u9762_uFF1A" class="headerlink" title="2.SQL语句方面："></a>2.SQL语句方面：</h3><ul>
+<li>应尽量避免在<code>where</code>子句中使用<code>!=</code>或<code>&lt;&gt;</code>操作符，否则将引擎放弃使用索引而进行全表扫描。</li>
+<li>应尽量避免在<code>where</code>子句中使用<code>or</code>来连接条件，否则将导致引擎放弃使用索引而进行全表扫描，如：<code>select id from table where column = 10 or column = 20</code>可以这样查询：<code>select id from table where column = 10 union all select id from table where column = 20</code>。</li>
+<li><code>in</code>和<code>not in</code>也要慎用，否则会导致全表扫描，如：<code>select id from table where column in (1,2,3)</code>对于连续的数值，能用<code>between</code>就不要用<code>in</code>了：<code>select id from table where column between 1 and 3</code>。</li>
+<li>下面的查询也将导致全表扫描：<code>select id from table where name like &#39;%abc%&#39;</code>。</li>
+<li>如果在<code>where</code>子句中使用参数，也会导致全表扫描。因为SQL只有在运行时才会解析局部变量，但优化程序不能将访问计划的选择推迟到运行时；它必须在编译时进行选择。然后，如果在编译时简历访问计划，变量的值还是未知，因而无法作为索引选择的输入项。如果下面语句将进行全表扫描：<code>select id from table where column = @column</code>可以改为强制查询使用索引：<code>select id from table with(index(索引名)) where column = @column</code>。</li>
+<li>应尽量避免在<code>where</code>子句中对字段进行表达式操作，这将导致引擎放弃使用索引而进行全表扫描。如：<code>select id from table where column/2 = 100</code>应改为：<code>select id from table where column = 100*2</code>。</li>
+<li>应尽量避免在<code>where</code>子句中对字段进行函数操作，这将导致引擎放弃使用索引而进行全表扫描。如：<code>select id from table where substring(name, 1, 3) = &#39;abc&#39;</code>应该改为<code>select id from table where name like &#39;abc%&#39;</code>。</li>
+<li>不要在<code>where</code>子句中的<code>=</code>左边进行函数、算术运算或其他表达式运算，否则系统将可能无法正确使用索引。</li>
+<li>不要写一些没有意义的查询。</li>
+<li>很多时候使用exists代替in是一个好的选择：<code>select id from table1 where id in (select id from table2)</code>用下面的语句替换：<code>select id from table1 where exists(select 1 from table2 where id = table1.id)</code>。</li>
+<li>任何地方都不要使用<code>select * from table</code>，用具体的字段列表代替<code>*</code>，不要返回用不到的任何字段。</li>
+<li>尽量避免使用游标，因为游标效率较差，如果游标操作的数据超过1万行，那么就应该考虑改写。</li>
+<li>尽量避免向客户端返回大数据量，若数据量过大，应该考虑相应需求是否合理。</li>
+<li>尽量避免大事务2操作，提高系统并发能力。</li>
+</ul>
+<h3 id="3-java_u65B9_u9762_uFF1A"><a href="#3-java_u65B9_u9762_uFF1A" class="headerlink" title="3.java方面："></a>3.java方面：</h3><ul>
+<li>尽可能的少造对象。</li>
+<li>合理摆正系统设计的位置。大量数据操作，和少量数据操作一定是分开的。大量的数据操作，肯定不是ORM框架搞定的。</li>
+<li>使用JDBC连接数据库操作数据</li>
+<li>控制好内存，让数据流起来，而不是全部读取到内存再处理，而是边读取边处理。</li>
+<li>合理利用内存，有的数据要缓存。</li>
+</ul>
+<p><img src="http://www.kuqin.com/shuoit/20160226/350862.html" alt="来源http://www.kuqin.com/shuoit/20160226/350862.html"></p>
+
+      
+    </div>
+    
+    <div class="article-info article-info-index">
+      
+      
+	<div class="article-tag tagcloud">
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sql/">sql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/性能优化/">性能优化</a></li></ul>
+	</div>
+
+      
+
+      
+      <div class="clearfix"></div>
+    </div>
+    
+  </div>
+  
+</article>
+
+
+
+
+
+
+
+
+
   
     <article id="post-how-to-imporve-webapp-performance" class="article article-type-post" itemscope itemprop="blogPost">
   
