@@ -4,26 +4,18 @@
   <meta charset="utf-8">
   
   <meta http-equiv="X-UA-Compatible" content="IE=edge" >
-  <title>高并发数据库锁（乐观锁，悲观锁） | BensonZc&#39;Blog</title>
+  <title>Mysql单表百万数据记录分页性能优化 | BensonZc&#39;Blog</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。从数据库层面来讲，最典型的就是悲观锁和乐观锁了
-悲观锁（Pessimisttic Locking）悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，">
+  <meta name="description" content="转载于http://www.kuqin.com/shuoit/20160630/352536.html1.直接使用limit start, count分页语句测试执行以下语句select * from table limit 10, 20select * from table limit 100, 20select * from table limit 1000, 20select * from">
 <meta property="og:type" content="article">
-<meta property="og:title" content="高并发数据库锁（乐观锁，悲观锁）">
-<meta property="og:url" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/index.html">
+<meta property="og:title" content="Mysql单表百万数据记录分页性能优化">
+<meta property="og:url" content="http://bensonzc.github.io/2016/08/21/mysql-pagination-query-optimization/index.html">
 <meta property="og:site_name" content="BensonZc'Blog">
-<meta property="og:description" content="工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。从数据库层面来讲，最典型的就是悲观锁和乐观锁了
-悲观锁（Pessimisttic Locking）悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，">
-<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-1.png">
-<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-2.png">
-<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-3.png">
-<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-4.png">
-<meta property="og:image" content="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/hcdl-5.png">
-<meta property="og:updated_time" content="2016-02-25T10:06:19.000Z">
+<meta property="og:description" content="转载于http://www.kuqin.com/shuoit/20160630/352536.html1.直接使用limit start, count分页语句测试执行以下语句select * from table limit 10, 20select * from table limit 100, 20select * from table limit 1000, 20select * from">
+<meta property="og:updated_time" content="2016-08-21T14:14:12.129Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="高并发数据库锁（乐观锁，悲观锁）">
-<meta name="twitter:description" content="工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。从数据库层面来讲，最典型的就是悲观锁和乐观锁了
-悲观锁（Pessimisttic Locking）悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，">
+<meta name="twitter:title" content="Mysql单表百万数据记录分页性能优化">
+<meta name="twitter:description" content="转载于http://www.kuqin.com/shuoit/20160630/352536.html1.直接使用limit start, count分页语句测试执行以下语句select * from table limit 10, 20select * from table limit 100, 20select * from table limit 1000, 20select * from">
   
     <link rel="alternative" href="/atom.xml" title="BensonZc&#39;Blog" type="application/atom+xml">
   
@@ -184,11 +176,11 @@
 	</div>
 </nav>
 
-      <div class="body-wrap"><article id="post-high-concurrency-db-lock" class="article article-type-post" itemscope itemprop="blogPost">
+      <div class="body-wrap"><article id="post-mysql-pagination-query-optimization" class="article article-type-post" itemscope itemprop="blogPost">
   
     <div class="article-meta">
-      <a href="/2016/02/25/high-concurrency-db-lock/" class="article-date">
-  	<time datetime="2016-02-25T08:19:34.000Z" itemprop="datePublished">2016-02-25</time>
+      <a href="/2016/08/21/mysql-pagination-query-optimization/" class="article-date">
+  	<time datetime="2016-08-21T13:58:30.000Z" itemprop="datePublished">2016-08-21</time>
 </a>
     </div>
   
@@ -201,7 +193,7 @@
         
   
     <h1 class="article-title" itemprop="name">
-      高并发数据库锁（乐观锁，悲观锁）
+      Mysql单表百万数据记录分页性能优化
     </h1>
   
 
@@ -210,7 +202,7 @@
       <div class="article-info article-info-post">
         
 	<div class="article-tag tagcloud">
-		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hibernate/">hibernate</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li></ul>
+		<ul class="article-tag-list"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/java/">java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mysql/">mysql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/性能优化/">性能优化</a></li></ul>
 	</div>
 
         
@@ -221,14 +213,8 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>工作中项目碰到高并发下各种脏数据，“被迫研究”了下数据库锁。<br>从数据库层面来讲，最典型的就是<strong>悲观锁</strong>和<strong>乐观锁了</strong></p>
-<h3 id="u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09"><a href="#u60B2_u89C2_u9501_uFF08Pessimisttic_Locking_uFF09" class="headerlink" title="悲观锁（Pessimisttic Locking）"></a>悲观锁（Pessimisttic Locking）</h3><p>悲观锁，指的是数据在整个处理过程中（包括本系统当前的其他事务，以及来自外部系统的事务处理），将数据处于锁定的状态。悲观锁的实现，一般依靠数据库提供的锁机制（也只有数据库层提供的锁机制才能真正保证数据访问的排他性，否则，即使本系统中实现了加锁，也无法保证外部系统不会修改数据）。<br><code>select * from table where column = “test” for update</code>这句sql锁定了table表中所有column为test的数据。本次事务提交之前，外界无法修改这些数据。<br>数据锁定时，其他线程或事务进行更新操作时，会等待锁释放后才能获取到数据。<strong>不加锁的查询</strong>操作不影响。</p>
-<p><img src="/2016/02/25/high-concurrency-db-lock/hcdl-1.png" alt=""><br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-2.png" alt=""></p>
-<p>LockOptions是LockMode的简单封装，在LockMode的基础上提供了timeout（是否等待锁释放）和scope（是否锁关联数据）。<code>JDK在注释中推荐使用LockOptions加锁，本人试过用LockMode加锁，有部分锁发现没有效果。具体原因查过，未知。但是不妨碍日常使用。</code>其中LockMode.UPGRADE_NOWAIT，Oracle特定实现，NOWAITT表明如果执行该select语句的事务不能立即获得悲观锁,那么不会等待其它事务释放锁,而是立刻抛出锁定异常</p>
-<p><strong>只有在查询开始之前（Hibernate生成sql之前）设定加锁，才会通过数据库的锁机制进行加锁。</strong></p>
-<h3 id="u4E50_u89C2_u9501_uFF08Optimistic_Locking_uFF09"><a href="#u4E50_u89C2_u9501_uFF08Optimistic_Locking_uFF09" class="headerlink" title="乐观锁（Optimistic Locking）"></a>乐观锁（Optimistic Locking）</h3><p>悲观锁依靠数据库的锁机制实现，保证操作的独占性。但带来了数据库性能的大量开销，特别是长事务。乐观锁解决了这个问题，乐观锁基于数据版本（Version）记录机制实现。即在表中增加字段version，更新数据的时候对version加一，提交数据时，与数据库表中的version比对，如果提交的数据version大于数据库表中的version则更新成功。反之抛出异常。</p>
-<p><strong>Hibernate集成了乐观锁</strong><br>加锁的表新增字段version用于数据版本控制。支持以下类型<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-3.png" alt=""><br>用@Version注解<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-4.png" alt=""><br>创建数据的时候。version会默认为0，更新数据的时候version会自动加一，若并发导致数据不同步，更新数据version小于等于数据库表version会抛出异常<br><img src="/2016/02/25/high-concurrency-db-lock/hcdl-5.png" alt=""><br>提示当前事务已被更新或删除了</p>
-<h3 id="u603B_u7ED3"><a href="#u603B_u7ED3" class="headerlink" title="总结"></a>总结</h3><p>悲观锁和乐观锁都有适用的场景，悲观锁很好的保持了数据的一致性，但是如果多个线程或事务并发，可能造成无限期等待。而乐观锁解决了这个问题，同时速度快，耗费性能低，只是多查了个字段，但是如果数据库是直接对外公开的话，外部是不受控制的，这时候就会产生脏数据。</p>
+        <h2 id="u8F6C_u8F7D_u4E8Ehttp_3A//www-kuqin-com/shuoit/20160630/352536-html"><a href="#u8F6C_u8F7D_u4E8Ehttp_3A//www-kuqin-com/shuoit/20160630/352536-html" class="headerlink" title="转载于http://www.kuqin.com/shuoit/20160630/352536.html"></a>转载于<a href="http://www.kuqin.com/shuoit/20160630/352536.html" target="_blank" rel="external">http://www.kuqin.com/shuoit/20160630/352536.html</a></h2><h3 id="1-_u76F4_u63A5_u4F7F_u7528limit_start_2C_count_u5206_u9875_u8BED_u53E5"><a href="#1-_u76F4_u63A5_u4F7F_u7528limit_start_2C_count_u5206_u9875_u8BED_u53E5" class="headerlink" title="1.直接使用limit start, count分页语句"></a>1.直接使用limit start, count分页语句</h3><p>测试执行以下语句<br><code>select * from table limit 10, 20</code><br><code>select * from table limit 100, 20</code><br><code>select * from table limit 1000, 20</code><br><code>select * from table limit 10000, 20</code><br>发现随着起始记录的增加，时间也随着增大，说明分页语句limit跟起始页码有很大关系。在百万数据的单表分页查询时，使用limit并不适用。</p>
+<h3 id="2-_u5BF9limit_u5206_u9875_u8FDB_u884C_u4F18_u5316"><a href="#2-_u5BF9limit_u5206_u9875_u8FDB_u884C_u4F18_u5316" class="headerlink" title="2.对limit分页进行优化"></a>2.对limit分页进行优化</h3><p>利用表的覆盖索引来加快分页查询，通过索引来优化查询是所有人都知道的最基本的优化方式。正常表中id字段为主键，包含了默认的主键索引。我们测试执行<br><code>select id from table limit 1000000, 20</code><br>发现查询时间非常短，提高了大约100度倍的速度。<br>实际使用过程中是需要查询所有列数据的。可以使用id &gt;= 的形式和join。<br><code>select * from table where id &gt;= (select id from table limit 1000000, 1) limit 20</code><br><code>select * from table a join (select id from table limit 1000000, 20) b on a.id = b.id</code><br>两个的查询时间差不多，以此来解决所有获得所有列数据。</p>
 
       
     </div>
@@ -238,18 +224,9 @@
     
 <nav id="article-nav">
   
-    <a href="/2016/03/24/deadlock-in-high-concurrency-single-row-update-postgresql/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption"><</strong>
-      <div class="article-nav-title">
-        
-          PostgreSQL高并发单行更新死锁
-        
-      </div>
-    </a>
   
-  
-    <a href="/2016/02/23/hibernate-initialize/" id="article-nav-older" class="article-nav-link-wrap">
-      <div class="article-nav-title">Hibernate.initialize()</div>
+    <a href="/2016/04/18/how-to-improve-database-query-efficiency/" id="article-nav-older" class="article-nav-link-wrap">
+      <div class="article-nav-title">在一个千万级的数据库查询中，如何提高查询效率</div>
       <strong class="article-nav-caption">></strong>
     </a>
   
@@ -284,7 +261,7 @@
 
 <div class="duoshuo">
 	<!-- 多说评论框 start -->
-	<div class="ds-thread" data-thread-key="high-concurrency-db-lock" data-title="高并发数据库锁（乐观锁，悲观锁）" data-url="http://bensonzc.github.io/2016/02/25/high-concurrency-db-lock/"></div>
+	<div class="ds-thread" data-thread-key="mysql-pagination-query-optimization" data-title="Mysql单表百万数据记录分页性能优化" data-url="http://bensonzc.github.io/2016/08/21/mysql-pagination-query-optimization/"></div>
 	<!-- 多说评论框 end -->
 	<!-- 多说公共JS代码 start (一个网页只需插入一次) -->
 	<script type="text/javascript">

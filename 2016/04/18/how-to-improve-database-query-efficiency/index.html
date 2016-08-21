@@ -16,8 +16,7 @@
 <meta property="og:description" content="1.数据库设计方面：
 对查询进行优化，应尽量避免全表扫描，首先应考虑在where及order by涉及的列上建立索引。
 应尽量避免在where子句中对字段进行null值判断，否则将导致引擎放弃使用索引而进行全表扫描，如select id from table where column is null可以在column设置默认值0，确保表中column中没有null值，然后这样查询:select i">
-<meta property="og:image" content="http://www.kuqin.com/shuoit/20160226/350862.html">
-<meta property="og:updated_time" content="2016-04-18T13:16:42.122Z">
+<meta property="og:updated_time" content="2016-08-21T14:03:28.103Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="在一个千万级的数据库查询中，如何提高查询效率">
 <meta name="twitter:description" content="1.数据库设计方面：
@@ -76,11 +75,11 @@
 				<div class="tips-box hide">
 					<div class="tips-arrow"></div>
 					<ul class="tips-inner">
-						<li>Menu</li>
-						<li>Tags</li>
+						<li>菜单</li>
+						<li>标签</li>
 						
 						
-						<li>About</li>
+						<li>关于我</li>
 						
 					</ul>
 				</div>
@@ -117,7 +116,7 @@
 				
 				<section class="switch-part switch-part2">
 					<div class="widget tagcloud" id="js-tagcloud">
-						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 15px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/sql/" style="font-size: 10px;">sql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/性能优化/" style="font-size: 15px;">性能优化</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
+						<a href="/tags/code-style/" style="font-size: 10px;">code-style</a> <a href="/tags/hibernate/" style="font-size: 13.33px;">hibernate</a> <a href="/tags/java/" style="font-size: 20px;">java</a> <a href="/tags/mysql/" style="font-size: 10px;">mysql</a> <a href="/tags/postgresql/" style="font-size: 10px;">postgresql</a> <a href="/tags/sql/" style="font-size: 10px;">sql</a> <a href="/tags/tomcat/" style="font-size: 10px;">tomcat</a> <a href="/tags/性能优化/" style="font-size: 16.67px;">性能优化</a> <a href="/tags/生活/" style="font-size: 10px;">生活</a> <a href="/tags/部署/" style="font-size: 10px;">部署</a> <a href="/tags/随记/" style="font-size: 10px;">随记</a>
 					</div>
 				</section>
 				
@@ -256,7 +255,7 @@
 <li>控制好内存，让数据流起来，而不是全部读取到内存再处理，而是边读取边处理。</li>
 <li>合理利用内存，有的数据要缓存。</li>
 </ul>
-<p><img src="http://www.kuqin.com/shuoit/20160226/350862.html" alt="来源http://www.kuqin.com/shuoit/20160226/350862.html"></p>
+<p>转载于<a href="http://www.kuqin.com/shuoit/20160226/350862.html" target="_blank" rel="external">http://www.kuqin.com/shuoit/20160226/350862.html</a></p>
 
       
     </div>
@@ -265,6 +264,15 @@
   
     
 <nav id="article-nav">
+  
+    <a href="/2016/08/21/mysql-pagination-query-optimization/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption"><</strong>
+      <div class="article-nav-title">
+        
+          Mysql单表百万数据记录分页性能优化
+        
+      </div>
+    </a>
   
   
     <a href="/2016/04/01/how-to-imporve-webapp-performance/" id="article-nav-older" class="article-nav-link-wrap">
@@ -281,7 +289,7 @@
 <div class="share_jia">
 	<!-- JiaThis Button BEGIN -->
 	<div class="jiathis_style">
-		<span class="jiathis_txt">Share to: &nbsp; </span>
+		<span class="jiathis_txt">分享到: &nbsp; </span>
 		<!-- <a class="jiathis_button_facebook"></a>  -->
 		<!-- <a class="jiathis_button_twitter"></a> -->
 		<a class="jiathis_button_plus"></a> 
